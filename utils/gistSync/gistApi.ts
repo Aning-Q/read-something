@@ -35,6 +35,9 @@ const validateToken = (token: string): void => {
   }
 };
 
+// 超时时间：30秒
+const FETCH_TIMEOUT_MS = 30000;
+
 const fetchWithAuth = async (
   token: string,
   endpoint: string,
@@ -49,34 +52,61 @@ const fetchWithAuth = async (
     ...(options.headers as Record<string, string>),
   };
 
-  const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    // 使用 AbortController 实现超时
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    
+    const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    let errorMessage = `请求失败: ${response.status}`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.message || errorMessage;
-    } catch {
-      // 忽略解析错误
+    if (!response.ok) {
+      let errorMessage = `请求失败: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // 忽略解析错误
+      }
+      
+      if (response.status === 401) {
+        throw new GistApiError('Token 无效或已过期，请重新配置', response.status);
+      }
+      if (response.status === 403) {
+        throw new GistApiError('Token 权限不足，请确保已授予 gist 权限', response.status);
+      }
+      if (response.status === 404) {
+        throw new GistApiError('Gist 不存在或无访问权限', response.status);
+      }
+      if (response.status === 422) {
+        throw new GistApiError('数据量过大，已超出 Gist 限制', response.status);
+      }
+      
+      throw new GistApiError(errorMessage, response.status);
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof GistApiError) {
+      throw error;
     }
     
-    if (response.status === 401) {
-      throw new GistApiError('Token 无效或已过期，请重新配置', response.status);
-    }
-    if (response.status === 403) {
-      throw new GistApiError('Token 权限不足，请确保已授予 gist 权限', response.status);
-    }
-    if (response.status === 404) {
-      throw new GistApiError('Gist 不存在或无访问权限', response.status);
+    // 处理网络错误和超时
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new GistApiError('请求超时，请检查网络后重试');
     }
     
-    throw new GistApiError(errorMessage, response.status);
+    // CORS / 网络错误
+    throw new GistApiError(
+      '网络连接失败，请检查网络或关闭代理/VPN后重试。' +
+      '如仍有问题，请尝试重新生成 GitHub Token。'
+    );
   }
-
-  return response;
 };
 
 export const testToken = async (token: string): Promise<boolean> => {
@@ -156,6 +186,15 @@ export const updateGistContent = async (
   gistId: string,
   content: string
 ): Promise<void> => {
+  // 检查大小：GitHub Gist 单文件建议不超过 10MB
+  const size = new TextEncoder().encode(content).length;
+  if (size > 10 * 1024 * 1024) {
+    throw new GistApiError(
+      `同步数据过大 (${(size / 1024 / 1024).toFixed(1)}MB)，` +
+      '超出 Gist 限制。请减少书籍数量或移除大文件后重试。'
+    );
+  }
+  
   await fetchWithAuth(token, `/gists/${gistId}`, {
     method: 'PATCH',
     body: JSON.stringify({
