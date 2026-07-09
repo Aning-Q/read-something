@@ -230,7 +230,8 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
                 checked={settings?.useProxy ?? true}
                 onChange={(e) => {
                   saveSyncSettings({ useProxy: e.target.checked });
-                  setSettings(prev => prev ? { ...prev, useProxy: e.target.checked } : prev);
+                  // 强制重新渲染
+                  setSettings({ ...getSyncSettings() });
                 }}
                 className="w-4 h-4 accent-blue-500"
               />
@@ -241,7 +242,7 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
                 value={settings?.proxyUrl || ''}
                 onChange={(e) => {
                   saveSyncSettings({ proxyUrl: e.target.value });
-                  setSettings(prev => prev ? { ...prev, proxyUrl: e.target.value } : prev);
+                  setSettings({ ...getSyncSettings() });
                 }}
                 placeholder="https://your-worker.your-name.workers.dev"
                 className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputBgClass}`}
@@ -263,7 +264,10 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
                 <input
                   type="radio"
                   checked={!settings?.lightSyncMode}
-                  onChange={() => saveSyncSettings({ lightSyncMode: false })}
+                  onChange={() => {
+                    saveSyncSettings({ lightSyncMode: false });
+                    setSettings(prev => ({ ...prev, lightSyncMode: false }));
+                  }}
                   className="mt-1"
                 />
                 <div>
@@ -276,8 +280,11 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
               <label className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="radio"
-                  checked={settings?.lightSyncMode ?? false}
-                  onChange={() => saveSyncSettings({ lightSyncMode: true })}
+                  checked={settings?.lightSyncMode ?? true}
+                  onChange={() => {
+                    saveSyncSettings({ lightSyncMode: true });
+                    setSettings(prev => ({ ...prev, lightSyncMode: true }));
+                  }}
                   className="mt-1"
                 />
                 <div>
