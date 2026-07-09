@@ -12,19 +12,35 @@ export interface SyncEntityMeta {
   lastModified: number;
 }
 
+export interface StoredBookContent {
+  fullText: string;
+  chapters: Array<{ title: string; content: string }>;
+}
+
+// 同步结果：警告信息
+export interface SyncWarning {
+  type: 'size_limit' | 'partial_data';
+  message: string;
+  detail?: string;
+}
+
 export interface SyncSnapshot {
-  schemaVersion: 1;
+  schemaVersion: 2;
   clientId: string;
   syncedAt: number;
   
-  // LocalStorage 数据
+  // LocalStorage 数据 (书籍列表、设置、API配置等)
   localStorage: Record<string, string>;
   
-  // IndexedDB 元数据 (不包含书籍全文和图片)
+  // IndexedDB 数据
+  bookContents: Record<string, StoredBookContent>;  // 书籍全文
+  chatHistory: Record<string, unknown>;            // AI 对话历史
+  
+  // StudyHub 数据 (共读集：笔记、测验、收藏语录)
   studyHub: {
-    notebooks: SyncEntityMeta[];
-    quizSessions: SyncEntityMeta[];
-    favoriteQuotes: SyncEntityMeta[];
+    notebooks: unknown[];
+    quizSessions: unknown[];
+    favoriteQuotes: unknown[];
   };
   
   // 可选的图片数据 (base64)
@@ -37,6 +53,7 @@ export interface SyncResult {
   pulled?: number;
   pushed?: number;
   conflicts?: string[];
+  warnings?: SyncWarning[];
 }
 
 export type SyncDirection = 'pull' | 'push' | 'both';

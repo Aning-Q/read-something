@@ -9,6 +9,18 @@ import {
   SYNC_LOCALSTORAGE_KEYS,
 } from './types';
 import {
+  getAllBookContents,
+  replaceAllBookContents,
+} from '../bookContentStorage';
+import {
+  getStoredChatHistoryStore,
+  replaceStoredChatHistoryStore,
+} from '../chatHistoryStorage';
+import {
+  exportStudyHubForArchive,
+  restoreStudyHubFromArchive,
+} from '../studyHubStorage';
+import {
   testToken,
   findSyncGist,
   createSyncGist,
@@ -82,32 +94,39 @@ const restoreLocalStorageSnapshot = (snapshot: Record<string, string>): void => 
 export const buildSyncSnapshot = async (): Promise<SyncSnapshot> => {
   const now = Date.now();
   
+  // 并行获取所有数据
+  const [bookContents, chatHistory, studyHubData] = await Promise.all([
+    getAllBookContents(),
+    getStoredChatHistoryStore(),
+    exportStudyHubForArchive(),
+  ]);
+  
   const snapshot: SyncSnapshot = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     clientId: getClientId(),
     syncedAt: now,
     localStorage: buildLocalStorageSnapshot(),
-    studyHub: {
-      notebooks: [],
-      quizSessions: [],
-      favoriteQuotes: [],
-    },
+    bookContents,
+    chatHistory,
+    studyHub: studyHubData,
   };
-  
-  // TODO: Phase 2 - 添加 IndexedDB 数据
-  // const notebooks = await getAllNotebooks();
-  // snapshot.studyHub.notebooks = notebooks.map(n => ({ id: n.id, lastModified: n.updatedAt }));
   
   return snapshot;
 };
 
 export const restoreFromSnapshot = async (snapshot: SyncSnapshot): Promise<void> => {
+  // 1. 恢复 localStorage
   restoreLocalStorageSnapshot(snapshot.localStorage);
   
-  // TODO: Phase 2 - 恢复 IndexedDB 数据
+  // 2. 恢复 IndexedDB 数据 (并行处理)
+  await Promise.all([
+    snapshot.bookContents ? replaceAllBookContents(snapshot.bookContents) : Promise.resolve(),
+    snapshot.chatHistory ? replaceStoredChatHistoryStore(snapshot.chatHistory) : Promise.resolve(),
+    snapshot.studyHub ? restoreStudyHubFromArchive(snapshot.studyHub) : Promise.resolve(),
+  ]);
   
-  // 触发页面刷新以应用新数据
-  // window.dispatchEvent(new CustomEvent('gist-sync-restored'));
+  // 通知 UI 刷新
+  window.dispatchEvent(new CustomEvent('gist-sync-restored'));
 };
 
 const compareAndMergeSnapshots = (
@@ -203,7 +222,10 @@ export const performSync = async (
       if (shouldUpdateLocal) {
         if (onProgress) onProgress('正在合并远程数据...');
         await restoreFromSnapshot(remoteSnapshot);
+        // 统计同步的项目数：配置 + 书籍 + 聊天
         pulled = Object.keys(remoteSnapshot.localStorage).length;
+        pulled += Object.keys(remoteSnapshot.bookContents || {}).length;
+        pulled += Object.keys(remoteSnapshot.chatHistory || {}).length;
       }
     }
     
@@ -217,7 +239,10 @@ export const performSync = async (
         JSON.stringify(newSnapshot, null, 2)
       );
       
+      // 统计推送的项目数：配置 + 书籍 + 聊天
       pushed = Object.keys(newSnapshot.localStorage).length;
+      pushed += Object.keys(newSnapshot.bookContents || {}).length;
+      pushed += Object.keys(newSnapshot.chatHistory || {}).length;
       saveSyncSettings({ lastSyncedAt: Date.now() });
     }
     
