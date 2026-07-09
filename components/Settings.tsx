@@ -962,7 +962,11 @@ const Settings: React.FC<SettingsProps> = ({
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-slate-400 ${isDarkMode ? cardClass : 'neu-flat'}`}>
                 <ChevronRight size={16} />
               </div>
+           </div>
+
            <div className="w-full h-[1px] bg-slate-300/20 mx-2" />
+
+           {/* Gist Sync */}
            <div 
               onClick={() => navigateTo("GIST_SYNC")}
               className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
@@ -976,7 +980,6 @@ const Settings: React.FC<SettingsProps> = ({
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-slate-400 ${isDarkMode ? cardClass : "neu-flat"}`}>
                 <ChevronRight size={16} />
               </div>
-           </div>
            </div>
 
            <div className="w-full h-[1px] bg-slate-300/20 mx-2" />
