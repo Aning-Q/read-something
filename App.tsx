@@ -13,6 +13,7 @@ import { buildConversationKey, readConversationBucket, persistConversationBucket
 import { BUILT_IN_TUTORIAL_BOOK_ID, BUILT_IN_TUTORIAL_VERSION, createBuiltInTutorialBook, migrateTutorialImages, isBuiltInBook, markTutorialUnread, clearTutorialUnread } from './utils/builtInTutorialBook';
 import { buildCharacterWorldBookSections, buildReadingContextSnapshot, runConversationGeneration } from './utils/readerAiEngine';
 import { DEFAULT_TTS_CONFIG } from './utils/ttsEngine';
+import { getSyncSettings, performSync, scheduleSync } from './utils/gistSync/syncEngine';
 import {
   DEFAULT_NEUMORPHISM_BUBBLE_CSS_PRESET_ID,
   DEFAULT_NEUMORPHISM_BUBBLE_CSS,
@@ -1106,6 +1107,37 @@ const App: React.FC = () => {
       // no-op: localStorage might be unavailable in private contexts
     }
   }, []);
+
+  // Gist Sync: Startup Pull
+  const didGistStartupPullRef = useRef(false);
+  useEffect(() => {
+    if (didGistStartupPullRef.current) return;
+    didGistStartupPullRef.current = true;
+    
+    const settings = getSyncSettings();
+    if (settings?.enabled && settings?.autoSync) {
+      performSync("pull").catch(() => {});
+    }
+  }, []);
+
+  // Gist Sync: Auto-push on data changes (debounced)
+  useEffect(() => {
+    const settings = getSyncSettings();
+    if (settings?.enabled && settings?.autoSync) {
+      scheduleSync(3000);
+    }
+  }, [books, apiConfig, apiPresets, appSettings, personas, characters, ttsConfig, ttsPresets]);
+
+  // Gist Sync: Reload state after remote sync
+  useEffect(() => {
+    const handler = () => {
+      // Trigger state re-read from localStorage
+      window.location.reload();
+    };
+    window.addEventListener("app-state-reload-requested", handler);
+    return () => window.removeEventListener("app-state-reload-requested", handler);
+  }, []);
+
   useEffect(() => {
     const compactedBooks = books.map(compactBookForState);
     safeSetStorageItem('app_books', JSON.stringify(compactedBooks));

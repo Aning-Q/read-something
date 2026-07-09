@@ -4,7 +4,7 @@ import {
   Book, 
   ChevronRight, 
   Key, 
-  HardDrive, 
+  HardDrive, Cloud, 
   UserCircle,
   ArrowLeft,
   Download,
@@ -24,6 +24,7 @@ import WorldBookSettings from './settings/WorldBookSettings';
 import AppearanceSettings from './settings/AppearanceSettings';
 import ApiSettings from './settings/ApiSettings';
 import TtsSettings from './settings/TtsSettings';
+import GistSyncSettings from './settings/GistSyncSettings';
 import ModalPortal from './ModalPortal';
 import { deleteImageByRef, saveImageFile } from '../utils/imageStorage';
 import {
@@ -680,6 +681,22 @@ const Settings: React.FC<SettingsProps> = ({
     );
   }
 
+  if (currentView === 'GIST_SYNC') {
+    return (
+      <div key="GIST_SYNC" className={`flex-1 flex flex-col p-6 pb-28 overflow-y-auto no-scrollbar relative ${containerClass} ${animationClass}`}>
+        {renderHeader("跨设备同步", () => goBack())}
+        <div className={`${cardClass} p-5 rounded-2xl`}>
+          <GistSyncSettings
+            isDarkMode={isDarkMode}
+            onSyncCompleted={() => {
+              window.dispatchEvent(new CustomEvent("app-state-reload-requested"));
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (currentView !== 'MAIN') {
      return (
         <div key={currentView} className={`flex-1 flex flex-col p-6 pb-28 overflow-y-auto no-scrollbar relative ${containerClass} ${animationClass}`}>
@@ -945,6 +962,21 @@ const Settings: React.FC<SettingsProps> = ({
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-slate-400 ${isDarkMode ? cardClass : 'neu-flat'}`}>
                 <ChevronRight size={16} />
               </div>
+           <div className="w-full h-[1px] bg-slate-300/20 mx-2" />
+           <div 
+              onClick={() => navigateTo("GIST_SYNC")}
+              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+           >
+              <div className="flex items-center gap-4">
+                <div className={`${sectionIconClass} text-blue-400`}>
+                  <Cloud size={22} />
+                </div>
+                <span className={`font-bold ${headingClass}`}>跨设备同步</span>
+              </div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-slate-400 ${isDarkMode ? cardClass : "neu-flat"}`}>
+                <ChevronRight size={16} />
+              </div>
+           </div>
            </div>
 
            <div className="w-full h-[1px] bg-slate-300/20 mx-2" />

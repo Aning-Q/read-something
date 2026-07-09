@@ -1,6 +1,6 @@
 import { ApiProvider, ApiConfig, ApiPreset, AppSettings, TtsConfig, TtsPreset } from '../../types';
 
-export type SettingsView = 'MAIN' | 'PERSONA' | 'CHARACTER' | 'WORLDBOOK' | 'API' | 'STORAGE' | 'APPEARANCE' | 'TTS';
+export type SettingsView = 'MAIN' | 'PERSONA' | 'CHARACTER' | 'WORLDBOOK' | 'API' | 'STORAGE' | 'APPEARANCE' | 'TTS' | 'GIST_SYNC';
 
 export interface Persona {
   id: string;
