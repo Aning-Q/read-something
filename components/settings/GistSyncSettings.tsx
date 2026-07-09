@@ -263,10 +263,13 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
               <label className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="radio"
-                  checked={!settings?.lightSyncMode}
+                  name="syncMode"
+                  value="full"
+                  checked={settings?.lightSyncMode === false}
                   onChange={() => {
-                    saveSyncSettings({ lightSyncMode: false });
-                    setSettings(prev => ({ ...prev, lightSyncMode: false }));
+                    const newSettings = { ...settings, lightSyncMode: false };
+                    saveSyncSettings(newSettings);
+                    setSettings(newSettings);
                   }}
                   className="mt-1"
                 />
@@ -280,10 +283,13 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
               <label className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="radio"
-                  checked={settings?.lightSyncMode ?? true}
+                  name="syncMode"
+                  value="light"
+                  checked={settings?.lightSyncMode !== false}
                   onChange={() => {
-                    saveSyncSettings({ lightSyncMode: true });
-                    setSettings(prev => ({ ...prev, lightSyncMode: true }));
+                    const newSettings = { ...settings, lightSyncMode: true };
+                    saveSyncSettings(newSettings);
+                    setSettings(newSettings);
                   }}
                   className="mt-1"
                 />
