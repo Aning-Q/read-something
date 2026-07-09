@@ -203,13 +203,12 @@ export const updateGistContent = async (
   gistId: string,
   content: string
 ): Promise<void> => {
-  // 检查大小：GitHub Gist 单文件建议不超过 1MB
-  // 超过 1MB 的文件需要从 raw_url 二次请求，同步会变慢
+  // 检查大小：GitHub API 限制 1MB 内不会被截断
   const size = new TextEncoder().encode(content).length;
-  if (size > 5 * 1024 * 1024) {
+  if (size > 1 * 1024 * 1024) {
     throw new GistApiError(
-      `同步数据过大 (${(size / 1024 / 1024).toFixed(1)}MB)，` +
-      '请减少书籍数量或删除不需要的聊天记录后重试。'
+      `同步数据过大 (${(size / 1024 / 1024).toFixed(2)}MB)，` +
+      '请减少书籍数量或清理聊天记录后重试。'
     );
   }
   
