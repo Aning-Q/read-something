@@ -255,6 +255,70 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
             </p>
           </div>
           
+          {/* 同步模式选择 */}
+          <div className={`mt-4 p-3 rounded-xl ${cardBgClass}`}>
+            <label className="block text-sm font-medium mb-2">📦 同步模式</label>
+            <div className="space-y-2">
+              <label className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={!settings?.lightSyncMode}
+                  onChange={() => saveSyncSettings({ lightSyncMode: false })}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="text-sm font-medium">完整同步</span>
+                  <p className={`text-xs ${mutedTextClass}`}>
+                    同步所有数据：书籍、设置、聊天记录、共读集
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={settings?.lightSyncMode ?? false}
+                  onChange={() => saveSyncSettings({ lightSyncMode: true })}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="text-sm font-medium">轻量同步 (推荐)</span>
+                  <p className={`text-xs ${mutedTextClass}`}>
+                    只同步设置、人设和阅读进度，书籍全文在各设备单独导入
+                  </p>
+                </div>
+              </label>
+            </div>
+            
+            {/* 估算数据大小按钮 */}
+            <button
+              onClick={async () => {
+                try {
+                  const { buildSyncSnapshot } = await import('../../utils/gistSync/syncEngine');
+                  const snapshot = await buildSyncSnapshot();
+                  const size = new TextEncoder().encode(JSON.stringify(snapshot)).length;
+                  const sizeKB = (size / 1024).toFixed(1);
+                  const sizeMB = (size / 1024 / 1024).toFixed(2);
+                  
+                  const details = [
+                    `配置数据: ${Object.keys(snapshot.localStorage).length} 项`,
+                    `书籍内容: ${Object.keys(snapshot.bookContents).length} 本`,
+                    `共读集: ${Object.keys(snapshot.studyHub).length} 类`
+                  ].join('，');
+                  
+                  setStatus({ 
+                    type: size > 1 * 1024 * 1024 ? 'error' : 'success', 
+                    message: `数据大小: ${sizeKB} KB (${sizeMB} MB)，${details}` 
+                  });
+                } catch (e) {
+                  setStatus({ type: 'error', message: `计算失败: ${e.message}` });
+                }
+              }}
+              className="mt-2 w-full px-3 py-2 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 text-xs text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              📊 估算同步数据大小
+            </button>
+          </div>
+          
           {/* 测试连接按钮 */}
           {(settings?.useProxy ?? true) && settings?.proxyUrl?.trim() && (
             <button

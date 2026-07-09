@@ -1,14 +1,18 @@
 import {
-  GistSyncSettings,
   SyncSnapshot,
   SyncResult,
   SyncDirection,
   GIST_SETTINGS_KEY,
-  GIST_FILENAME,
   CLIENT_ID_KEY,
-  SYNC_LOCALSTORAGE_KEYS,
 } from './types';
-
+import {
+  GistApiError,
+  testToken,
+  findSyncGist,
+  createSyncGist,
+  getGistContent,
+  updateGistContent,
+} from './gistApi';
 import {
   getAllBookContents,
   replaceAllBookContents,
@@ -21,14 +25,11 @@ import {
   exportStudyHubForArchive,
   restoreStudyHubFromArchive,
 } from '../studyHubStorage';
-import {
-  testToken,
-  findSyncGist,
-  createSyncGist,
-  getGistContent,
-  updateGistContent,
-  GistApiError,
-} from './gistApi';
+
+// 使用全局方式，避免打包时 tree-shaking 丢失
+declare global {
+  var __gist_proxy_url: string | undefined;
+}
 
 const getClientId = (): string => {
   let clientId = localStorage.getItem(CLIENT_ID_KEY);
@@ -39,21 +40,17 @@ const getClientId = (): string => {
   return clientId;
 };
 
-export const getSyncSettings = (): GistSyncSettings | null => {
+export const getSyncSettings = (): any | null => {
   try {
     const raw = localStorage.getItem(GIST_SETTINGS_KEY);
     if (!raw) return null;
-    const settings = JSON.parse(raw);
-    
-    // 向后兼容：Token 可能在旧版本中是明文存储的
-    // 如果需要迁移，可以在这里处理
-    return settings;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 };
 
-export const saveSyncSettings = (settings: Partial<GistSyncSettings>): void => {
+export const saveSyncSettings = (settings: Partial<any>): void => {
   const existing = getSyncSettings() || {
     enabled: false,
     githubToken: '',
@@ -63,9 +60,10 @@ export const saveSyncSettings = (settings: Partial<GistSyncSettings>): void => {
     lastSyncedAt: 0,
     useProxy: true,
     proxyUrl: '',
+    lightSyncMode: true,
   };
   
-  const merged: GistSyncSettings = { ...existing, ...settings };
+  const merged = { ...existing, ...settings };
   localStorage.setItem(GIST_SETTINGS_KEY, JSON.stringify(merged));
 };
 
@@ -75,36 +73,51 @@ export const clearSyncSettings = (): void => {
 
 const buildLocalStorageSnapshot = (): Record<string, string> => {
   const snapshot: Record<string, string> = {};
-  
-  for (const key of SYNC_LOCALSTORAGE_KEYS) {
+  const keys = Object.keys(localStorage);
+  for (const key of keys) {
+    if (!key.startsWith('app_')) continue;
+    if (key === GIST_SETTINGS_KEY) continue;
     const value = localStorage.getItem(key);
     if (value !== null) {
       snapshot[key] = value;
     }
   }
-  
   return snapshot;
 };
 
 const restoreLocalStorageSnapshot = (snapshot: Record<string, string>): void => {
   for (const [key, value] of Object.entries(snapshot)) {
-    if (SYNC_LOCALSTORAGE_KEYS.includes(key) && value !== undefined) {
+    if (key === GIST_SETTINGS_KEY) continue;
+    if (value !== undefined) {
       localStorage.setItem(key, value);
     }
   }
 };
 
-export const buildSyncSnapshot = async (): Promise<SyncSnapshot> => {
+export const buildSyncSnapshot = async (lightMode: boolean = true): Promise<SyncSnapshot> => {
   const now = Date.now();
   
-  // 并行获取所有数据
+  // 轻量模式：只同步 localStorage（设置、人设、书籍列表）
+  if (lightMode) {
+    return {
+      schemaVersion: 2,
+      clientId: getClientId(),
+      syncedAt: now,
+      localStorage: buildLocalStorageSnapshot(),
+      bookContents: {},
+      chatHistory: {},
+      studyHub: { notebooks: [], quizSessions: [], favoriteQuotes: [] },
+    } as unknown as SyncSnapshot;
+  }
+  
+  // 完整模式：同步所有数据
   const [bookContents, chatHistory, studyHubData] = await Promise.all([
     getAllBookContents(),
     getStoredChatHistoryStore(),
     exportStudyHubForArchive(),
   ]);
   
-  const snapshot: SyncSnapshot = {
+  return {
     schemaVersion: 2,
     clientId: getClientId(),
     syncedAt: now,
@@ -112,38 +125,27 @@ export const buildSyncSnapshot = async (): Promise<SyncSnapshot> => {
     bookContents,
     chatHistory,
     studyHub: studyHubData,
-  };
-  
-  return snapshot;
+  } as unknown as SyncSnapshot;
 };
 
-export const restoreFromSnapshot = async (snapshot: SyncSnapshot): Promise<void> => {
+export const restoreFromSnapshot = async (snapshot: SyncSnapshot, lightMode: boolean = true): Promise<void> => {
   // 1. 恢复 localStorage
   restoreLocalStorageSnapshot(snapshot.localStorage);
   
-  // 2. 恢复 IndexedDB 数据 (并行处理)
-  await Promise.all([
-    snapshot.bookContents ? replaceAllBookContents(snapshot.bookContents) : Promise.resolve(),
-    snapshot.chatHistory ? replaceStoredChatHistoryStore(snapshot.chatHistory) : Promise.resolve(),
-    snapshot.studyHub ? restoreStudyHubFromArchive(snapshot.studyHub) : Promise.resolve(),
-  ]);
-  
-  // 通知 UI 刷新
-  window.dispatchEvent(new CustomEvent('gist-sync-restored'));
+  // 2. 完整模式才恢复 IndexedDB 数据
+  if (!lightMode) {
+    await Promise.all([
+      snapshot.bookContents ? replaceAllBookContents(snapshot.bookContents) : Promise.resolve(),
+      snapshot.chatHistory ? replaceStoredChatHistoryStore(snapshot.chatHistory) : Promise.resolve(),
+      snapshot.studyHub ? restoreStudyHubFromArchive(snapshot.studyHub) : Promise.resolve(),
+    ]);
+  }
 };
 
-const compareAndMergeSnapshots = (
-  local: SyncSnapshot,
-  remote: SyncSnapshot
-): { shouldUpdateLocal: boolean; shouldUpdateRemote: boolean; conflicts: string[] } => {
+const compareAndMergeSnapshots = (local: SyncSnapshot, remote: SyncSnapshot): { shouldUpdateLocal: boolean } => {
+  // 简单比较时间戳，远程较新就更新本地
   const shouldUpdateLocal = remote.syncedAt > local.syncedAt;
-  const shouldUpdateRemote = remote.syncedAt < local.syncedAt;
-  const conflicts: string[] = [];
-  
-  // 简单策略：以时间戳较新的为准
-  // Phase 2 可以在这里实现更精细的合并逻辑
-  
-  return { shouldUpdateLocal, shouldUpdateRemote, conflicts };
+  return { shouldUpdateLocal };
 };
 
 export const validateAndConfigureGist = async (token: string): Promise<{ gistId: string; isNew: boolean }> => {
@@ -153,14 +155,8 @@ export const validateAndConfigureGist = async (token: string): Promise<{ gistId:
   const isNew = !gistId;
   
   if (!gistId) {
-    const initialSnapshot: SyncSnapshot = {
-      schemaVersion: 1,
-      clientId: getClientId(),
-      syncedAt: Date.now(),
-      localStorage: buildLocalStorageSnapshot(),
-      studyHub: { notebooks: [], quizSessions: [], favoriteQuotes: [] },
-    };
-    
+    // 初始同步使用轻量模式
+    const initialSnapshot = await buildSyncSnapshot(true);
     gistId = await createSyncGist(token, JSON.stringify(initialSnapshot, null, 2));
   }
   
@@ -173,13 +169,6 @@ export const performSync = async (
 ): Promise<SyncResult> => {
   const settings = getSyncSettings();
   
-  // 配置代理（全局方式）
-  if (settings?.useProxy && settings?.proxyUrl) {
-    (globalThis as any).__gist_proxy_url = settings.proxyUrl.trim();
-  } else {
-    delete (globalThis as any).__gist_proxy_url;
-  }
-  
   if (!settings || !settings.enabled) {
     return { success: false, error: '同步功能未启用' };
   }
@@ -187,6 +176,15 @@ export const performSync = async (
   if (!settings.githubToken) {
     return { success: false, error: '未配置 GitHub Token' };
   }
+  
+  // 配置代理
+  if (settings.useProxy && settings.proxyUrl) {
+    (globalThis as any).__gist_proxy_url = settings.proxyUrl.trim();
+  } else {
+    delete (globalThis as any).__gist_proxy_url;
+  }
+  
+  const lightMode = settings.lightSyncMode ?? true;
   
   try {
     if (onProgress) onProgress('正在连接 GitHub...');
@@ -198,19 +196,17 @@ export const performSync = async (
       settings.gistId = gistId;
     }
     
-    const localSnapshot = await buildSyncSnapshot();
+    const localSnapshot = await buildSyncSnapshot(lightMode);
     let remoteSnapshot: SyncSnapshot | null = null;
-    let remoteUpdatedAt = 0;
     
     if (direction === 'pull' || direction === 'both') {
       if (onProgress) onProgress('正在拉取远程数据...');
       
       try {
-        const { content, updatedAt } = await getGistContent(settings.githubToken, settings.gistId);
+        const { content } = await getGistContent(settings.githubToken, settings.gistId);
         remoteSnapshot = JSON.parse(content);
-        remoteUpdatedAt = updatedAt;
       } catch (error) {
-        if (error instanceof GistApiError && error.statusCode === 404) {
+        if (error instanceof GistApiError && error.message.includes('404')) {
           if (onProgress) onProgress('Gist 不存在，正在重新创建...');
           const { gistId } = await validateAndConfigureGist(settings.githubToken);
           saveSyncSettings({ gistId });
@@ -224,35 +220,36 @@ export const performSync = async (
     
     let pulled = 0;
     let pushed = 0;
-    const conflicts: string[] = [];
     
     if (remoteSnapshot && (direction === 'pull' || direction === 'both')) {
       const { shouldUpdateLocal } = compareAndMergeSnapshots(localSnapshot, remoteSnapshot);
       
       if (shouldUpdateLocal) {
         if (onProgress) onProgress('正在合并远程数据...');
-        await restoreFromSnapshot(remoteSnapshot);
-        // 统计同步的项目数：配置 + 书籍 + 聊天
+        await restoreFromSnapshot(remoteSnapshot, lightMode);
         pulled = Object.keys(remoteSnapshot.localStorage).length;
-        pulled += Object.keys(remoteSnapshot.bookContents || {}).length;
-        pulled += Object.keys(remoteSnapshot.chatHistory || {}).length;
+        if (!lightMode) {
+          pulled += Object.keys(remoteSnapshot.bookContents || {}).length;
+          pulled += Object.keys(remoteSnapshot.chatHistory || {}).length;
+        }
       }
     }
     
     if (direction === 'push' || direction === 'both') {
       if (onProgress) onProgress('正在推送本地数据...');
       
-      const newSnapshot = await buildSyncSnapshot();
+      const newSnapshot = await buildSyncSnapshot(lightMode);
       await updateGistContent(
         settings.githubToken,
         settings.gistId,
         JSON.stringify(newSnapshot, null, 2)
       );
       
-      // 统计推送的项目数：配置 + 书籍 + 聊天
       pushed = Object.keys(newSnapshot.localStorage).length;
-      pushed += Object.keys(newSnapshot.bookContents || {}).length;
-      pushed += Object.keys(newSnapshot.chatHistory || {}).length;
+      if (!lightMode) {
+        pushed += Object.keys(newSnapshot.bookContents || {}).length;
+        pushed += Object.keys(newSnapshot.chatHistory || {}).length;
+      }
       saveSyncSettings({ lastSyncedAt: Date.now() });
     }
     
@@ -262,7 +259,6 @@ export const performSync = async (
       success: true,
       pulled,
       pushed,
-      conflicts,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知错误';
@@ -283,9 +279,7 @@ export const scheduleSync = (delayMs: number = 3000): void => {
   }
   
   syncDebounceTimer = setTimeout(() => {
-    performSync('push').catch(() => {
-      // 静默失败，不影响用户
-    });
+    performSync('push').catch(() => {});
     syncDebounceTimer = null;
   }, delayMs);
 };
