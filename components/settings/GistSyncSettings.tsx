@@ -255,6 +255,31 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
             </p>
           </div>
           
+          {/* 测试连接按钮 */}
+          {(settings?.useProxy ?? true) && settings?.proxyUrl?.trim() && (
+            <button
+              onClick={async () => {
+                try {
+                  const proxyUrl = settings.proxyUrl.trim().replace(/\/$/, '');
+                  const res = await fetch(proxyUrl + '/health', {
+                    signal: AbortSignal.timeout(10000),
+                  });
+                  if (res.ok) {
+                    setStatus({ type: 'success', message: '✅ 代理连接正常！' });
+                  } else {
+                    setStatus({ type: 'error', message: `❌ 代理响应异常: ${res.status}` });
+                  }
+                } catch (e) {
+                  setStatus({ type: 'error', message: `❌ 代理连接失败: ${e.message}` });
+                }
+              }}
+              disabled={isTesting || isSyncing}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
+            >
+              🔍 测试代理连接
+            </button>
+          )}
+          
           <button
             onClick={handleTestAndSave}
             disabled={
