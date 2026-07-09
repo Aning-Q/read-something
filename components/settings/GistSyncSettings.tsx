@@ -47,9 +47,9 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
     
     // 配置代理
     if (partialSettings.useProxy && partialSettings.proxyUrl) {
-      setProxyUrl(partialSettings.proxyUrl);
+      (globalThis as any).__gist_proxy_url = partialSettings.proxyUrl?.trim();
     } else {
-      setProxyUrl(null);
+      delete (globalThis as any).__gist_proxy_url;
     }
 
     if (!tokenInput.trim()) {
@@ -249,12 +249,19 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
             )}
             <p className={`mt-1 text-xs ${mutedTextClass}`}>
               从 GitHub Pages 访问时必须配置代理
+              {(settings?.useProxy ?? true) && !settings?.proxyUrl?.trim() && (
+                <span className="text-orange-500 block">⚠️ 请先填写代理地址</span>
+              )}
             </p>
           </div>
           
           <button
             onClick={handleTestAndSave}
-            disabled={isTesting || !tokenInput.trim()}
+            disabled={
+  isTesting || 
+  !tokenInput.trim() || 
+  ((settings?.useProxy ?? true) && !settings?.proxyUrl?.trim())
+}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isTesting ? (

@@ -8,7 +8,7 @@ import {
   CLIENT_ID_KEY,
   SYNC_LOCALSTORAGE_KEYS,
 } from './types';
-import { setProxyUrl } from './gistApi';
+
 import {
   getAllBookContents,
   replaceAllBookContents,
@@ -173,11 +173,11 @@ export const performSync = async (
 ): Promise<SyncResult> => {
   const settings = getSyncSettings();
   
-  // 配置代理
+  // 配置代理（全局方式）
   if (settings?.useProxy && settings?.proxyUrl) {
-    setProxyUrl(settings.proxyUrl);
+    (globalThis as any).__gist_proxy_url = settings.proxyUrl.trim();
   } else {
-    setProxyUrl(null);
+    delete (globalThis as any).__gist_proxy_url;
   }
   
   if (!settings || !settings.enabled) {

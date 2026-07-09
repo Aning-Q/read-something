@@ -2,21 +2,21 @@ import { GIST_FILENAME, GIST_DESCRIPTION } from './types';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
-// 自定义代理 URL（可配置）
-let customProxyUrl: string | null = null;
-
-export const setProxyUrl = (url: string | null): void => {
-  customProxyUrl = url?.trim() || null;
-};
-
-export const getProxyUrl = (): string | null => customProxyUrl;
+// 使用全局方式，避免打包时 tree-shaking 丢失
+declare global {
+  var __gist_proxy_url: string | undefined;
+}
 
 // 获取实际的 API 基础 URL
 const getApiBase = (): string => {
-  if (customProxyUrl) {
-    return customProxyUrl.replace(/\/$/, '');
+  if (globalThis.__gist_proxy_url) {
+    return globalThis.__gist_proxy_url.replace(/\/$/, '');
   }
   return GITHUB_API_BASE;
+};
+
+export const setProxyUrl = (url: string | null): void => {
+  globalThis.__gist_proxy_url = url?.trim() || undefined;
 };
 
 export interface GistFile {
