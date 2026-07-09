@@ -8,6 +8,7 @@ import {
   CLIENT_ID_KEY,
   SYNC_LOCALSTORAGE_KEYS,
 } from './types';
+import { setProxyUrl } from './gistApi';
 import {
   getAllBookContents,
   replaceAllBookContents,
@@ -60,6 +61,8 @@ export const saveSyncSettings = (settings: Partial<GistSyncSettings>): void => {
     autoSync: true,
     syncImages: false,
     lastSyncedAt: 0,
+    useProxy: true,
+    proxyUrl: '',
   };
   
   const merged: GistSyncSettings = { ...existing, ...settings };
@@ -169,6 +172,13 @@ export const performSync = async (
   onProgress?: (message: string) => void
 ): Promise<SyncResult> => {
   const settings = getSyncSettings();
+  
+  // 配置代理
+  if (settings?.useProxy && settings?.proxyUrl) {
+    setProxyUrl(settings.proxyUrl);
+  } else {
+    setProxyUrl(null);
+  }
   
   if (!settings || !settings.enabled) {
     return { success: false, error: '同步功能未启用' };

@@ -5,6 +5,9 @@ export interface GistSyncSettings {
   autoSync: boolean;
   syncImages: boolean;
   lastSyncedAt: number;
+  // CORS 代理设置 (为空则直连 GitHub)
+  proxyUrl: string;
+  useProxy: boolean;
 }
 
 export interface SyncEntityMeta {

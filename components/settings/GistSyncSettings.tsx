@@ -36,6 +36,22 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
   }, []);
 
   const handleTestAndSave = async () => {
+    // 先保存设置（包括代理配置）
+    const partialSettings: Partial<GistSyncSettings> = {
+      enabled: false,
+      githubToken: tokenInput.trim(),
+      gistId: '',
+      ...settings,
+    };
+    saveSyncSettings(partialSettings);
+    
+    // 配置代理
+    if (partialSettings.useProxy && partialSettings.proxyUrl) {
+      setProxyUrl(partialSettings.proxyUrl);
+    } else {
+      setProxyUrl(null);
+    }
+
     if (!tokenInput.trim()) {
       setStatus({ type: 'error', message: '请输入 GitHub Token' });
       clearStatus();
@@ -204,6 +220,38 @@ const GistSyncSettings: React.FC<GistSyncSettingsProps> = ({ isDarkMode, onSyncC
               只需授予 gist 权限，Token 仅在本地存储
             </p>
           </div>
+          
+          {/* CORS 代理配置 */}
+          <div>
+            <label className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium">使用代理（解决跨域问题）</span>
+              <input
+                type="checkbox"
+                checked={settings?.useProxy ?? true}
+                onChange={(e) => {
+                  saveSyncSettings({ useProxy: e.target.checked });
+                  setSettings(prev => prev ? { ...prev, useProxy: e.target.checked } : prev);
+                }}
+                className="w-4 h-4 accent-blue-500"
+              />
+            </label>
+            {(settings?.useProxy ?? true) && (
+              <input
+                type="text"
+                value={settings?.proxyUrl || ''}
+                onChange={(e) => {
+                  saveSyncSettings({ proxyUrl: e.target.value });
+                  setSettings(prev => prev ? { ...prev, proxyUrl: e.target.value } : prev);
+                }}
+                placeholder="https://your-worker.your-name.workers.dev"
+                className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputBgClass}`}
+              />
+            )}
+            <p className={`mt-1 text-xs ${mutedTextClass}`}>
+              从 GitHub Pages 访问时必须配置代理
+            </p>
+          </div>
+          
           <button
             onClick={handleTestAndSave}
             disabled={isTesting || !tokenInput.trim()}

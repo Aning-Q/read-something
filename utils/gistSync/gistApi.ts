@@ -2,6 +2,23 @@ import { GIST_FILENAME, GIST_DESCRIPTION } from './types';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
+// 自定义代理 URL（可配置）
+let customProxyUrl: string | null = null;
+
+export const setProxyUrl = (url: string | null): void => {
+  customProxyUrl = url?.trim() || null;
+};
+
+export const getProxyUrl = (): string | null => customProxyUrl;
+
+// 获取实际的 API 基础 URL
+const getApiBase = (): string => {
+  if (customProxyUrl) {
+    return customProxyUrl.replace(/\/$/, '');
+  }
+  return GITHUB_API_BASE;
+};
+
 export interface GistFile {
   filename: string;
   content: string;
@@ -57,7 +74,7 @@ const fetchWithAuth = async (
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     
-    const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, {
+    const response = await fetch(`${getApiBase()}${endpoint}`, {
       ...options,
       headers,
       signal: controller.signal,
