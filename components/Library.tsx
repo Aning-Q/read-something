@@ -204,6 +204,7 @@ const Library: React.FC<LibraryProps> = ({
   
   // State for Deletion Confirmation
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [errorModal, setErrorModal] = useState<{show: boolean, msg: string}>({ show: false, msg: '' });
   const [isErrorModalClosing, setIsErrorModalClosing] = useState(false);
 
@@ -1066,6 +1067,8 @@ const Library: React.FC<LibraryProps> = ({
       onDeleteBook(deleteConfirmId);
       setDeleteConfirmId(null);
       closeEditModal();
+      setShowDeleteSuccess(true);
+      setTimeout(() => setShowDeleteSuccess(false), 2000);
     }
   };
 
@@ -1781,6 +1784,16 @@ const Library: React.FC<LibraryProps> = ({
                        </div>
                      )}
 
+                     {/* 删除按钮 */}
+                     {!isBuiltInBook(book.id) && (
+                       <button
+                         onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(book.id); }}
+                         className="absolute top-2 right-2 w-7 h-7 bg-black/40 hover:bg-rose-500 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 z-10"
+                       >
+                         <Trash2 size={14} />
+                       </button>
+                     )}
+
                      {book.tags && book.tags.length > 0 && (
                        <div className="absolute top-3 left-3 right-12 flex flex-wrap gap-1 max-h-[60%] overflow-hidden content-start">
                           {book.tags.slice(0, 2).map((tag, i) => (
@@ -1832,7 +1845,7 @@ const Library: React.FC<LibraryProps> = ({
                  <div 
                     key={book.id} 
                     onClick={() => onOpenBook(book)}
-                    className={`${cardClass} app-card-press p-4 rounded-2xl flex items-stretch gap-4 group cursor-pointer`}
+                    className={`${cardClass} app-card-press p-4 rounded-2xl flex items-stretch gap-4 group cursor-pointer relative`}
                  >
                     {/* Cover Image instead of Icon */}
                     <div className={`w-14 rounded-lg overflow-hidden flex-shrink-0 shadow-sm relative ${pressedClass} min-h-[4.5rem] app-card-press-media`}>
@@ -1845,6 +1858,7 @@ const Library: React.FC<LibraryProps> = ({
                          <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full shadow-md animate-pulse z-10" style={{ backgroundColor: 'rgb(var(--theme-500) / 1)' }} />
                        )}
                     </div>
+
 
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                        <div>
@@ -1969,6 +1983,16 @@ const Library: React.FC<LibraryProps> = ({
             </div>
            </div>
          </ModalPortal>
+      )}
+
+      {/*  删除成功提示  */}
+      {showDeleteSuccess && (
+         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] animate-fade-in">
+           <div className="bg-green-500 dark:bg-green-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 font-medium">
+             <Check size={18} />
+             书籍已删除
+           </div>
+         </div>
       )}
 
       {/* Delete Confirmation Modal */}

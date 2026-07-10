@@ -657,25 +657,7 @@ const App: React.FC = () => {
         initial = Array.isArray(parsed) ? stripBuiltInSampleBooks(parsed) : [];
       }
     } catch { /* no-op */ }
-    const versionKey = '__built_in_tutorial_version__';
-    const storedVersion = (() => { try { return Number(localStorage.getItem(versionKey)) || 0; } catch { return 0; } })();
-    const tutorialIdx = initial.findIndex(b => b.id === BUILT_IN_TUTORIAL_BOOK_ID);
-    if (tutorialIdx === -1 || storedVersion < BUILT_IN_TUTORIAL_VERSION) {
-      const tutorial = createBuiltInTutorialBook();
-      // 先用原始章节（含 data-URL）同步保存以确保书籍立即可用，
-      // 再异步将图片迁移为 idb:// Blob 引用并重新保存。
-      saveBookContent(tutorial.id, tutorial.fullText || '', tutorial.chapters || []);
-      migrateTutorialImages(tutorial.chapters || []).then((migratedChapters) => {
-        saveBookContent(tutorial.id, tutorial.fullText || '', migratedChapters);
-      }).catch(() => { /* 迁移失败则保留 data-URL 作为 fallback */ });
-      if (tutorialIdx === -1) {
-        initial.push(compactBookForState(tutorial));
-      } else {
-        initial[tutorialIdx] = compactBookForState(tutorial);
-      }
-      try { localStorage.setItem(versionKey, String(BUILT_IN_TUTORIAL_VERSION)); } catch { /* no-op */ }
-      if (storedVersion > 0) markTutorialUnread();
-    }
+    initial = initial.filter(b => b.id !== "__built_in_tutorial__");
     return initial;
   });
 
