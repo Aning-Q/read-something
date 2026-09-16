@@ -1,0 +1,78 @@
+/* Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V4 */
+:root {
+  --color-paper: oklch(98% 0.008 82);
+  --color-paper-2: oklch(95.5% 0.018 320);
+  --color-paper-3: oklch(92.5% 0.022 315);
+  --color-ink: oklch(28% 0.026 278);
+  --color-ink-2: oklch(42% 0.026 278);
+  --color-muted: oklch(50% 0.024 278);
+  --color-rule: oklch(87% 0.016 300);
+  --color-rule-2: oklch(81% 0.022 300);
+  --color-accent: oklch(55% 0.145 12);
+  --color-accent-strong: oklch(49% 0.155 12);
+  --color-accent-soft: oklch(92% 0.045 12);
+  --color-accent-ink: oklch(99% 0.002 82);
+  --color-focus: oklch(35% 0.14 250);
+  --color-success: oklch(58% 0.12 150);
+  --color-error: oklch(56% 0.19 25);
+  --color-overlay: oklch(24% 0.03 278 / 0.24);
+
+  --font-display: "PING FANG SHAO HUA", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-outlier: "SFMono-Regular", "SF Mono", ui-monospace, monospace;
+
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-display: clamp(1.875rem, 3vw + 1rem, 3.25rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-instant: 120ms;
+  --dur-short: 180ms;
+  --dur-medium: 260ms;
+  --dur-long: 420ms;
+
+  --rule-hair: 1px;
+  --radius-xs: 0.5rem;
+  --radius-input: 0.75rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 999px;
+  --shadow-card: 0 8px 24px -14px oklch(42% 0.055 300 / 0.28);
+  --shadow-float: 0 16px 38px -20px oklch(32% 0.04 278 / 0.34);
+}
+
+.dark-mode {
+  --color-paper: oklch(22% 0.022 278);
+  --color-paper-2: oklch(26% 0.026 282);
+  --color-paper-3: oklch(30% 0.03 288);
+  --color-ink: oklch(94% 0.012 285);
+  --color-ink-2: oklch(82% 0.02 285);
+  --color-muted: oklch(70% 0.025 285);
+  --color-rule: oklch(35% 0.03 282);
+  --color-rule-2: oklch(42% 0.034 282);
+  --color-accent: oklch(74% 0.13 12);
+  --color-accent-strong: oklch(79% 0.12 12);
+  --color-accent-soft: oklch(33% 0.055 12);
+  --color-accent-ink: oklch(24% 0.024 278);
+  --color-focus: oklch(76% 0.12 250);
+  --color-success: oklch(74% 0.1 150);
+  --color-error: oklch(76% 0.15 25);
+  --color-overlay: oklch(8% 0.02 278 / 0.5);
+  --shadow-card: 0 10px 30px -18px oklch(8% 0.02 278 / 0.72);
+  --shadow-float: 0 20px 44px -20px oklch(8% 0.02 278 / 0.9);
+}

@@ -2212,7 +2212,7 @@ const App: React.FC = () => {
   const resolvedSafeAreaTop = manualSafeAreaTop;
   const resolvedSafeAreaBottom = manualSafeAreaBottom;
   const appViewportHeight = 'calc(var(--app-screen-height) + var(--app-safe-area-bottom-px))';
-  const appWrapperClass = `relative flex flex-col h-full font-sans overflow-hidden transition-colors duration-300 ${isDarkMode ? 'dark-mode bg-[#2d3748] text-slate-200' : 'bg-[#e0e5ec] text-slate-600'}`;
+  const appWrapperClass = `hallmark-app relative flex flex-col h-full overflow-hidden ${isDarkMode ? 'dark-mode' : ''}`;
   const appWrapperStyle: React.CSSProperties = {
     minHeight: appViewportHeight,
     height: appViewportHeight,
@@ -2243,7 +2243,7 @@ const App: React.FC = () => {
     <>
       {/* Global Notification */}
       <div
-        className={`fixed left-1/2 -translate-x-1/2 z-[110] transition-all duration-500 ease-out transform ${notification.show ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0 pointer-events-none'}`}
+        className={`fixed left-1/2 -translate-x-1/2 z-[110] transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-500 ease-out transform ${notification.show ? 'translate-y-0 opacity-100' : '-translate-y-20 opacity-0 pointer-events-none'}`}
         style={{ top: `${resolvedSafeAreaTop + 24}px` }}
       >
         <div className={`w-[min(94vw,760px)] px-8 py-4 rounded-[28px] flex items-center gap-4 border backdrop-blur-md ${isDarkMode ? 'bg-[#2d3748] text-slate-200 border-slate-700/70 shadow-[8px_8px_16px_#232b39,-8px_-8px_16px_#374357]' : 'bg-[#e0e5ec] text-slate-600 border-white/20 shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.8)]'}`}>
@@ -2254,7 +2254,7 @@ const App: React.FC = () => {
       {/* RAG Warmup Progress */}
       {primaryRagWarmupState && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-all duration-300"
+          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300"
           style={{ top: `${resolvedSafeAreaTop + (notification.show ? 122 : 24)}px` }}
         >
           <div className={`w-[min(94vw,760px)] px-8 py-4 rounded-[28px] flex items-center gap-4 border backdrop-blur-md ${isDarkMode ? 'bg-[#2d3748]/95 text-slate-200 border-slate-700/70 shadow-[8px_8px_16px_#232b39,-8px_-8px_16px_#374357]' : 'bg-[#e0e5ec]/95 text-slate-600 border-white/20 shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.8)]'}`}>
@@ -2268,7 +2268,7 @@ const App: React.FC = () => {
       {/* RAG Error Toast */}
       {ragErrorToast.show && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-all duration-300"
+          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300"
           style={{ top: `${resolvedSafeAreaTop + (notification.show ? 122 : 24) + (primaryRagWarmupState ? 72 : 0)}px` }}
         >
           <div className={`w-[min(94vw,760px)] px-8 py-4 rounded-[28px] flex items-center gap-4 border backdrop-blur-md ${isDarkMode ? 'bg-[#2d3748]/95 text-slate-200 border-slate-700/70 shadow-[8px_8px_16px_#232b39,-8px_-8px_16px_#374357]' : 'bg-[#e0e5ec]/95 text-slate-600 border-white/20 shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.8)]'}`}>
@@ -2364,7 +2364,7 @@ const App: React.FC = () => {
                   } catch {}
                   ragMismatchDialog.resolve?.('rebuild');
                 }}
-                className="flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all font-bold text-sm"
+                className="flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] font-bold text-sm"
               >
                 确认重建
               </button>
@@ -2478,37 +2478,45 @@ const App: React.FC = () => {
         className="absolute left-0 right-0 z-40 px-6 pointer-events-none"
         style={{ bottom: `${resolvedSafeAreaBottom + 8}px` }}
       >
-        <div className={`flex w-full justify-around items-center py-3 px-2 rounded-2xl pointer-events-auto ${isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357]' : 'neu-flat'}`}>
+        <div className="hallmark-tabbar flex w-full justify-around items-center pointer-events-auto">
           <button 
             onClick={() => transitionToView(AppView.LIBRARY)}
             disabled={isViewTransitioning}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${currentView === AppView.LIBRARY ? 'text-rose-400 shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2),inset_-3px_-3px_6px_rgba(255,255,255,0.1)]' : 'text-slate-400 hover:text-slate-600'}`}
+            aria-label="书架"
+            className={`hallmark-tab-button ${currentView === AppView.LIBRARY ? 'hallmark-tab-button--active' : ''}`}
           >
             <LayoutGrid size={22} strokeWidth={currentView === AppView.LIBRARY ? 2.5 : 2} />
+            <span className="hallmark-tab-label">书架</span>
           </button>
           
           <button
             onClick={() => transitionToView(AppView.STATS)}
             disabled={isViewTransitioning}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${currentView === AppView.STATS ? 'text-rose-400 shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2),inset_-3px_-3px_6px_rgba(255,255,255,0.1)]' : 'text-slate-400 hover:text-slate-600'}`}
+            aria-label="进度"
+            className={`hallmark-tab-button ${currentView === AppView.STATS ? 'hallmark-tab-button--active' : ''}`}
           >
             <PieChart size={22} strokeWidth={currentView === AppView.STATS ? 2.5 : 2} />
+            <span className="hallmark-tab-label">进度</span>
           </button>
 
           <button
             onClick={() => transitionToView(AppView.STUDY_HUB)}
             disabled={isViewTransitioning}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${currentView === AppView.STUDY_HUB ? 'text-rose-400 shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2),inset_-3px_-3px_6px_rgba(255,255,255,0.1)]' : 'text-slate-400 hover:text-slate-600'}`}
+            aria-label="学习"
+            className={`hallmark-tab-button ${currentView === AppView.STUDY_HUB ? 'hallmark-tab-button--active' : ''}`}
           >
             <Sparkles size={22} strokeWidth={currentView === AppView.STUDY_HUB ? 2.5 : 2} />
+            <span className="hallmark-tab-label">学习</span>
           </button>
 
           <button
             onClick={() => transitionToView(AppView.SETTINGS)}
             disabled={isViewTransitioning}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${currentView === AppView.SETTINGS ? 'text-rose-400 shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2),inset_-3px_-3px_6px_rgba(255,255,255,0.1)]' : 'text-slate-400 hover:text-slate-600'}`}
+            aria-label="设置"
+            className={`hallmark-tab-button ${currentView === AppView.SETTINGS ? 'hallmark-tab-button--active' : ''}`}
           >
             <SettingsIcon size={22} strokeWidth={currentView === AppView.SETTINGS ? 2.5 : 2} />
+            <span className="hallmark-tab-label">设置</span>
           </button>
         </div>
       </nav>
@@ -2517,4 +2525,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

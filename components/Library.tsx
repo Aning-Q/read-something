@@ -129,14 +129,14 @@ const Library: React.FC<LibraryProps> = ({
   activeRagPresetId
 }) => {
   const MODAL_TRANSITION_MS = 240;
-  const containerClass = isDarkMode ? 'bg-[#2d3748] text-slate-200' : 'neu-bg text-slate-600';
-  const headingClass = isDarkMode ? 'text-slate-200' : 'text-slate-700';
-  const subTextClass = isDarkMode ? 'text-slate-400' : 'text-slate-500';
-  const cardClass = isDarkMode ? 'bg-[#2d3748] shadow-[6px_6px_12px_#232b39,-6px_-6px_12px_#374357]' : 'neu-flat';
-  const pressedClass = isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'neu-pressed';
-  const inputClass = isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357] text-slate-200 placeholder-slate-500' : 'neu-pressed text-slate-600 placeholder-slate-400';
-  const btnClass = isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357] text-slate-200' : 'neu-btn';
-  const compactEditButtonClass = `w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-150 active:scale-95 ${
+  const containerClass = 'hallmark-page';
+  const headingClass = 'hallmark-heading';
+  const subTextClass = 'hallmark-muted';
+  const cardClass = 'hallmark-card';
+  const pressedClass = 'hallmark-pressed';
+  const inputClass = 'hallmark-input';
+  const btnClass = 'hallmark-button hallmark-button--secondary';
+  const compactEditButtonClass = `w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-150 active:scale-95 ${
     isDarkMode
       ? `${btnClass} active:shadow-[inset_2px_2px_4px_#232b39,inset_-2px_-2px_4px_#374357]`
       : `${btnClass} active:shadow-[inset_2px_2px_4px_#c3c8ce,inset_-2px_-2px_4px_#fdffff]`
@@ -1303,7 +1303,7 @@ const Library: React.FC<LibraryProps> = ({
             <button
               onClick={handleAutoGenerateRegex}
               disabled={isGeneratingRegex || structuredChapterMode}
-              className={`px-4 rounded-xl flex items-center justify-center gap-1 text-xs font-bold text-rose-400 transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 ${btnClass}`}
+              className={`px-4 rounded-xl flex items-center justify-center gap-1 text-xs font-bold text-rose-400 transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 whitespace-nowrap disabled:opacity-50 ${btnClass}`}
               title={structuredChapterMode ? '已启用结构化章节模式' : '输入示例标题后点击自动生成'}
             >
               <Sparkles size={14} className={isGeneratingRegex ? 'animate-spin' : ''} />
@@ -1394,14 +1394,14 @@ const Library: React.FC<LibraryProps> = ({
               </div>
 
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${ragEnabled ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
+                className={`overflow-hidden transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ease-in-out ${ragEnabled ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
               >
                 <div className="pt-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1 block">RAG模型预设</label>
                   <div
                     ref={ragDropdownTriggerRef}
                     onClick={() => { if (ragPresetDropdownOpen) closeRagDropdown(); else openRagDropdown(); }}
-                    className={`w-full px-4 py-3 rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.99] ${inputClass}`}
+                    className={`w-full px-4 py-3 rounded-xl flex items-center justify-between cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.99] ${inputClass}`}
                   >
                     <span className="text-sm truncate">
                       {selectedPreset?.name || '选择预设...'}
@@ -1497,7 +1497,7 @@ const Library: React.FC<LibraryProps> = ({
                      onClick={() => setIsCharMenuOpen(!isCharMenuOpen)}
                      className="flex flex-col items-center gap-1 cursor-pointer group"
                   >
-                     <div className={`relative w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent transition-all group-hover:border-rose-300 ${isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357]' : 'neu-btn'}`}>
+                     <div className={`relative w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent transition-[transform,opacity,background-color,color,border-color,box-shadow] group-hover:border-rose-300 ${isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357]' : 'neu-btn'}`}>
                        {renderAvatar(activeCharacter?.avatar, false, !activeCharacterId, 'CHAR')}
                      </div>
                      <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm z-10 border border-white/10 ${isDarkMode ? 'bg-[#2d3748] text-blue-400' : 'bg-[#e0e5ec] text-blue-400'}`}>
@@ -1560,7 +1560,7 @@ const Library: React.FC<LibraryProps> = ({
                      onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                      className="flex flex-col items-center gap-1 cursor-pointer group"
                   >
-                     <div className={`relative w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent transition-all group-hover:border-rose-300 ${isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357]' : 'neu-btn'}`}>
+                     <div className={`relative w-12 h-12 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent transition-[transform,opacity,background-color,color,border-color,box-shadow] group-hover:border-rose-300 ${isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357]' : 'neu-btn'}`}>
                        {renderAvatar(activePersona?.avatar, !activePersonaId, false, 'USER')}
                      </div>
                      <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm z-10 border border-white/10 ${isDarkMode ? 'bg-[#2d3748] text-blue-400' : 'bg-[#e0e5ec] text-blue-400'}`}>
@@ -1690,7 +1690,7 @@ const Library: React.FC<LibraryProps> = ({
              <div className="relative" ref={filterRef}>
                <button 
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isFilterOpen || selectedTags.length > 0 ? 'bg-rose-400 text-white shadow-md' : `${cardClass} text-slate-400 hover:text-rose-400`}`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${isFilterOpen || selectedTags.length > 0 ? 'bg-rose-400 text-white shadow-md' : `${cardClass} text-slate-400 hover:text-rose-400`}`}
                >
                   <Filter size={18} />
                </button>
@@ -1729,7 +1729,7 @@ const Library: React.FC<LibraryProps> = ({
              <div className="relative" ref={sortRef}>
                <button 
                   onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isSortMenuOpen ? 'bg-rose-400 text-white shadow-md' : `${cardClass} text-slate-400 hover:text-rose-400`}`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${isSortMenuOpen ? 'bg-rose-400 text-white shadow-md' : `${cardClass} text-slate-400 hover:text-rose-400`}`}
                >
                   <ArrowUpDown size={18} />
                </button>
@@ -1740,7 +1740,7 @@ const Library: React.FC<LibraryProps> = ({
              <div className="relative">
                  <button 
                     onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${cardClass} text-slate-400 hover:text-rose-400`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${cardClass} text-slate-400 hover:text-rose-400`}
                  >
                     {viewMode === 'grid' ? <AlignJustify size={18} /> : <LayoutGrid size={18} />}
                  </button>
@@ -1754,7 +1754,7 @@ const Library: React.FC<LibraryProps> = ({
                {/* Add New Book Button (Import) - Only in Grid or List? Let's keep it in both but style differently if list */}
                 <div 
                   onClick={openImportModal}
-                  className={`aspect-[3/4] rounded-2xl flex flex-col items-center justify-center hover:text-rose-400 transition-all cursor-pointer border-2 border-transparent hover:border-rose-100/20 active:scale-[0.98] ${pressedClass} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                  className={`aspect-[3/4] rounded-2xl flex flex-col items-center justify-center hover:text-rose-400 transition-[transform,opacity,background-color,color,border-color,box-shadow] cursor-pointer border-2 border-transparent hover:border-rose-100/20 active:scale-[0.98] ${pressedClass} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
                 >
                    <Plus size={32} />
                    <span className="text-sm font-medium mt-2">导入书籍</span>
@@ -1834,7 +1834,7 @@ const Library: React.FC<LibraryProps> = ({
                {/* Add New Book (List Mode) */}
                 <div 
                    onClick={openImportModal}
-                   className={`p-4 rounded-2xl flex items-center justify-center gap-2 hover:text-rose-400 transition-all cursor-pointer border-2 border-transparent hover:border-rose-100/20 active:scale-[0.98] ${pressedClass} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
+                   className={`p-4 rounded-2xl flex items-center justify-center gap-2 hover:text-rose-400 transition-[transform,opacity,background-color,color,border-color,box-shadow] cursor-pointer border-2 border-transparent hover:border-rose-100/20 active:scale-[0.98] ${pressedClass} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}
                 >
                    <Plus size={18} />
                   <span className="text-sm"><span className="font-medium">导入书籍</span> <span className="opacity-60 font-normal">TXT / WORD / PDF / EPUB / MOBI</span></span>
@@ -1941,7 +1941,7 @@ const Library: React.FC<LibraryProps> = ({
                <button 
                   onClick={saveBookChanges}
                   disabled={isLoadingBookContent}
-                  className={`flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
                >
                   保存修改
                </button>
@@ -1975,7 +1975,7 @@ const Library: React.FC<LibraryProps> = ({
                   <button 
                      onClick={saveImportBook}
                      disabled={!importingBook.title}
-                     className={`flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all font-bold text-sm disabled:opacity-50 disabled:active:scale-100`}
+                     className={`flex-1 py-3 rounded-full text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] font-bold text-sm disabled:opacity-50 disabled:active:scale-100`}
                   >
                      确认导入
                   </button>
@@ -2018,7 +2018,7 @@ const Library: React.FC<LibraryProps> = ({
                   </button>
                   <button 
                      onClick={confirmDelete}
-                     className={`flex-1 py-2 rounded-full text-white bg-rose-500 shadow-lg hover:bg-rose-600 active:scale-95 transition-all font-bold text-sm`}
+                     className={`flex-1 py-2 rounded-full text-white bg-rose-500 shadow-lg hover:bg-rose-600 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] font-bold text-sm`}
                   >
                      删除
                   </button>
@@ -2044,7 +2044,7 @@ const Library: React.FC<LibraryProps> = ({
                 </p>
                 <button 
                    onClick={closeErrorModal}
-                   className={`w-full py-2 rounded-full text-white bg-red-500 shadow-lg hover:bg-red-600 active:scale-95 transition-all font-bold text-sm`}
+                   className={`w-full py-2 rounded-full text-white bg-red-500 shadow-lg hover:bg-red-600 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] font-bold text-sm`}
                 >
                    关闭
                 </button>
@@ -2142,7 +2142,6 @@ const Library: React.FC<LibraryProps> = ({
 };
 
 export default Library;
-
 
 
 

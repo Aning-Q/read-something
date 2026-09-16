@@ -163,13 +163,13 @@ const Settings: React.FC<SettingsProps> = ({
 
   // Theme Classes
   const theme: ThemeClasses = {
-    containerClass: isDarkMode ? 'bg-[#2d3748] text-slate-200' : 'neu-bg text-slate-600',
-    headingClass: isDarkMode ? 'text-slate-200' : 'text-slate-700',
-    cardClass: isDarkMode ? 'bg-[#2d3748] shadow-[6px_6px_12px_#232b39,-6px_-6px_12px_#374357]' : 'neu-flat',
-    pressedClass: isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'neu-pressed',
-    sectionIconClass: `w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'neu-pressed'}`,
-    inputClass: isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357] text-slate-200 placeholder-slate-500' : 'neu-pressed text-slate-600 placeholder-slate-400',
-    btnClass: isDarkMode ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357] text-slate-200' : 'neu-btn',
+    containerClass: 'hallmark-page',
+    headingClass: 'hallmark-heading',
+    cardClass: 'hallmark-card',
+    pressedClass: 'hallmark-pressed',
+    sectionIconClass: 'w-12 h-12 rounded-full flex items-center justify-center hallmark-pressed',
+    inputClass: 'hallmark-input',
+    btnClass: 'hallmark-button hallmark-button--secondary',
     activeBorderClass: 'border-2 border-rose-300 relative z-20',
     baseBorderClass: 'border-2 border-transparent relative z-0',
     animationClass: transitionAnimationClass,
@@ -227,9 +227,9 @@ const Settings: React.FC<SettingsProps> = ({
   const renderToggle = (isActive: boolean, onToggle: () => void) => (
       <button 
         onClick={onToggle}
-        className={`w-14 h-8 rounded-full p-1 flex items-center transition-all ${pressedClass}`}
+        className={`w-14 h-8 rounded-full p-1 flex items-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${pressedClass}`}
       >
-        <div className={`w-6 h-6 rounded-full shadow-sm flex items-center justify-center transition-all transform duration-300 ${isActive ? 'translate-x-6 bg-rose-400' : 'translate-x-0 bg-slate-400'}`}>
+        <div className={`w-6 h-6 rounded-full shadow-sm flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] transform duration-300 ${isActive ? 'translate-x-6 bg-rose-400' : 'translate-x-0 bg-slate-400'}`}>
         </div>
       </button>
   );
@@ -428,14 +428,14 @@ const Settings: React.FC<SettingsProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className={`${cardClass} aspect-square flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-rose-400 active:scale-95 transition-all rounded-2xl`}
+                className={`${cardClass} aspect-square flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-rose-400 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] rounded-2xl`}
               >
                 <ImageIcon size={32} />
                 <span className="text-sm font-medium">本地上传</span>
               </button>
               <button 
                 onClick={() => setUrlInputMode(true)}
-                className={`${cardClass} aspect-square flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-rose-400 active:scale-95 transition-all rounded-2xl`}
+                className={`${cardClass} aspect-square flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-rose-400 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] rounded-2xl`}
               >
                 <LinkIcon size={32} />
                 <span className="text-sm font-medium">网络链接</span>
@@ -720,7 +720,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* User Persona */}
            <div 
              onClick={() => navigateTo('PERSONA')}
-             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
              <div className="flex items-center gap-4">
                <div className={`${sectionIconClass} text-rose-400`}>
@@ -741,7 +741,7 @@ const Settings: React.FC<SettingsProps> = ({
           {/* AI Character */}
           <div 
              onClick={() => navigateTo('CHARACTER')}
-             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
           >
              <div className="flex items-center gap-4">
                <div className={`${sectionIconClass} text-rose-400`}>
@@ -762,7 +762,7 @@ const Settings: React.FC<SettingsProps> = ({
           {/* World Book */}
           <div 
              onClick={() => navigateTo('WORLDBOOK')}
-             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
           >
              <div className="flex items-center gap-4">
                <div className={`${sectionIconClass} text-rose-400`}>
@@ -915,7 +915,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* API Config */}
            <div 
               onClick={() => navigateTo('API')}
-              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
               <div className="flex items-center gap-4">
                 <div className={`${sectionIconClass} text-blue-400`}>
@@ -933,7 +933,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* TTS Voice */}
            <div
               onClick={() => navigateTo('TTS')}
-              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
               <div className="flex items-center gap-4">
                 <div className={`${sectionIconClass} text-blue-400`}>
@@ -951,7 +951,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* Storage Analysis */}
            <div 
               onClick={() => navigateTo('STORAGE')}
-              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
               <div className="flex items-center gap-4">
                 <div className={`${sectionIconClass} text-slate-400`}>
@@ -969,7 +969,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* Gist Sync */}
            <div 
               onClick={() => navigateTo("GIST_SYNC")}
-              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+              className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
               <div className="flex items-center gap-4">
                 <div className={`${sectionIconClass} text-blue-400`}>
@@ -987,7 +987,7 @@ const Settings: React.FC<SettingsProps> = ({
            {/* Appearance Preferences */}
            <div 
              onClick={() => navigateTo('APPEARANCE')}
-             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all"
+             className="p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-[transform,opacity,background-color,color,border-color,box-shadow]"
            >
               <div className="flex items-center gap-4">
                 <div className={`${sectionIconClass} text-rose-400`}>
@@ -1035,4 +1035,3 @@ const Settings: React.FC<SettingsProps> = ({
 };
 
 export default Settings;
-

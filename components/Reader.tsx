@@ -692,7 +692,7 @@ const HighlightChapterDropdown = ({
     <div className="relative" ref={containerRef}>
       <div
         onClick={handleToggle}
-        className={`w-full h-8 rounded-xl flex items-center justify-between cursor-pointer px-2.5 text-[11px] font-medium transition-all active:scale-[0.99] ${
+        className={`w-full h-8 rounded-xl flex items-center justify-between cursor-pointer px-2.5 text-[11px] font-medium transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.99] ${
           isDarkMode ? 'bg-[#1a202c] text-slate-300' : 'neu-pressed text-slate-600'
         }`}
       >
@@ -4194,18 +4194,18 @@ const Reader: React.FC<ReaderProps> = ({
   const typographyToggleStyle = { color: '#64748B' } as React.CSSProperties;
   const floatingPanelAnchorStyle = { top: `${floatingPanelTopPx}px` } as React.CSSProperties;
   const typographyInputClass = `h-8 rounded-md px-2 text-[11px] outline-none ${isDarkMode ? 'bg-[#111827] text-slate-200 placeholder-slate-500' : 'bg-white/70 text-slate-700 placeholder-slate-400'}`;
-  const typographySelectTriggerClass = `w-full h-8 rounded-md px-2 flex items-center justify-between cursor-pointer transition-all active:scale-[0.99] ${isDarkMode ? 'bg-[#111827] text-slate-200' : 'bg-white/70 text-slate-700'}`;
-  const typographyIconButtonClass = `w-8 h-8 rounded-full flex items-center justify-center transition-all ${isDarkMode ? 'bg-[#111827] text-slate-300 hover:text-white' : 'neu-btn text-slate-500 hover:text-slate-700'}`;
+  const typographySelectTriggerClass = `w-full h-8 rounded-md px-2 flex items-center justify-between cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.99] ${isDarkMode ? 'bg-[#111827] text-slate-200' : 'bg-white/70 text-slate-700'}`;
+  const typographyIconButtonClass = `w-8 h-8 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${isDarkMode ? 'bg-[#111827] text-slate-300 hover:text-white' : 'neu-btn text-slate-500 hover:text-slate-700'}`;
   const getTypographyAlignButtonClass = (value: ReaderTextAlign) => {
     const isActive = readerTypography.textAlign === value;
     if (isDarkMode) {
-      return `h-8 flex-1 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-semibold transition-all active:scale-[0.98] ${
+      return `h-8 flex-1 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-semibold transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98] ${
         isActive
           ? 'bg-[#111827] text-rose-300 shadow-[inset_3px_3px_6px_#0b1220,inset_-3px_-3px_6px_#1f2937]'
           : 'bg-[#111827] text-slate-300 hover:text-white shadow-[3px_3px_6px_#0b1220,-3px_-3px_6px_#1f2937]'
       }`;
     }
-    return `h-8 flex-1 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-semibold transition-all active:scale-[0.98] ${
+    return `h-8 flex-1 rounded-lg flex items-center justify-center gap-1.5 text-[11px] font-semibold transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98] ${
       isActive ? 'neu-pressed text-rose-400' : 'neu-btn text-slate-500 hover:text-slate-700'
     }`;
   };
@@ -4327,14 +4327,12 @@ const Reader: React.FC<ReaderProps> = ({
   return (
     <div
       ref={readerRootRef}
-      className={`flex flex-col h-full min-h-0 relative overflow-hidden transition-colors duration-300 ${
-        isDarkMode ? 'dark-mode bg-[#2d3748] text-slate-300' : 'bg-[#e0e5ec] text-slate-700'
-      }`}
+      className={`hallmark-reader flex flex-col h-full min-h-0 relative overflow-hidden ${isDarkMode ? 'dark-mode' : ''}`}
       style={{ paddingTop: `${Math.max(0, safeAreaTop)}px`, paddingBottom: `${Math.max(0, safeAreaBottom)}px` }}
     >
       {ttsErrorToast.show && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-all duration-300"
+          className="fixed left-1/2 -translate-x-1/2 z-[110] pointer-events-none transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300"
           style={{ top: `${Math.max(0, safeAreaTop) + 24}px` }}
         >
           <div
@@ -4352,7 +4350,7 @@ const Reader: React.FC<ReaderProps> = ({
         </div>
       )}
 
-      <div className={`flex items-center gap-3 p-4 z-10 transition-colors ${isDarkMode ? 'bg-[#2d3748]' : 'bg-[#e0e5ec]'}`}>
+      <div className="hallmark-reader-toolbar flex items-center gap-3 p-4 z-10">
         <button onClick={handleBackClick} className="w-10 h-10 neu-btn rounded-full text-slate-500 hover:text-slate-700 shrink-0">
           <ArrowLeft size={20} />
         </button>
@@ -4538,7 +4536,7 @@ const Reader: React.FC<ReaderProps> = ({
                       <button
                         type="button"
                         onClick={() => setHighlightColorFilter(null)}
-                        className={`h-6 px-2 rounded-full text-[10px] font-bold transition-all ${
+                        className={`h-6 px-2 rounded-full text-[10px] font-bold transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                           !highlightColorFilter
                             ? 'text-rose-400 bg-rose-400/10'
                             : isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-500'
@@ -4554,7 +4552,7 @@ const Reader: React.FC<ReaderProps> = ({
                             key={color}
                             type="button"
                             onClick={() => setHighlightColorFilter(highlightColorFilter === color ? null : color)}
-                            className={`w-4 h-4 rounded-full border-2 transition-all ${
+                            className={`w-4 h-4 rounded-full border-2 transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                               highlightColorFilter === color ? 'border-rose-400 scale-110' : 'border-transparent'
                             }`}
                             style={{ backgroundColor: color }}
@@ -4714,7 +4712,7 @@ const Reader: React.FC<ReaderProps> = ({
                 <button
                   type="button"
                   onClick={applyHighlightColorDraft}
-                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all"
+                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                 >
                   {'\u5e94\u7528'}
                 </button>
@@ -4883,7 +4881,7 @@ const Reader: React.FC<ReaderProps> = ({
                     <button
                       type="button"
                       onClick={handleApplyFontUrl}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                       title={'\u4fdd\u5b58\u5b57\u4f53'}
                     >
                       <Save size={14} />
@@ -4926,7 +4924,7 @@ const Reader: React.FC<ReaderProps> = ({
                 <button
                   type="button"
                   onClick={closeFloatingPanel}
-                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all"
+                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                 >
                   {'\u5e94\u7528'}
                 </button>
@@ -4981,7 +4979,7 @@ const Reader: React.FC<ReaderProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmAddBookmark}
-                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all"
+                  className="flex-1 h-7 rounded-full text-[11px] font-bold text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                 >
                   {'\u4fdd\u5b58'}
                 </button>
@@ -5037,7 +5035,7 @@ const Reader: React.FC<ReaderProps> = ({
                       {isTitleCurrentTts ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); ttsPlaybackState?.isPaused ? handleTtsResume() : handleTtsPause(); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
                               : 'bg-rose-100 text-rose-500 hover:bg-rose-200'
@@ -5048,7 +5046,7 @@ const Reader: React.FC<ReaderProps> = ({
                       ) : ttsPlaybackState?.isActive ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleTtsJumpToParagraph(-1); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -5059,7 +5057,7 @@ const Reader: React.FC<ReaderProps> = ({
                       ) : (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleTtsStartFromParagraph(-1); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -5070,7 +5068,7 @@ const Reader: React.FC<ReaderProps> = ({
                       )}
                       <button
                         onClick={(e) => { e.stopPropagation(); handleTtsRefreshParagraph(-1); }}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                           isDarkMode
                             ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                             : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -5142,7 +5140,7 @@ const Reader: React.FC<ReaderProps> = ({
                       {isCurrentTtsParagraph ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); ttsPlaybackState?.isPaused ? handleTtsResume() : handleTtsPause(); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
                               : 'bg-rose-100 text-rose-500 hover:bg-rose-200'
@@ -5153,7 +5151,7 @@ const Reader: React.FC<ReaderProps> = ({
                       ) : ttsPlaybackState?.isActive ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleTtsJumpToParagraph(item.paragraphIndex); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -5164,7 +5162,7 @@ const Reader: React.FC<ReaderProps> = ({
                       ) : (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleTtsStartFromParagraph(item.paragraphIndex); }}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                             isDarkMode
                               ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -5175,7 +5173,7 @@ const Reader: React.FC<ReaderProps> = ({
                       )}
                       <button
                         onClick={(e) => { e.stopPropagation(); handleTtsRefreshParagraph(item.paragraphIndex); }}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-90 ${
                           isDarkMode
                             ? 'bg-slate-600/30 text-slate-400 hover:bg-slate-600/50'
                             : 'bg-slate-100 text-slate-400 hover:bg-slate-200'

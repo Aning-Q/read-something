@@ -1,4 +1,6 @@
+/* Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V4 · genre: playful · tone: cute-modern · anchor hue: sakura-coral · macrostructure: Workbench / Long Document · design-system: design.md · contrast: pass (40–41) */
 @import url("/fonts/ping-fang-shao-hua/result.css");
+@import url("./tokens.css");
 
 @tailwind base;
 @tailwind components;
@@ -78,7 +80,7 @@
       }
 
       /* ── Instant :active feedback ──
-         Tailwind's `transition-all` applies transition-duration:150ms to every
+         Tailwind's broad transition utility applies transition-duration:150ms to every
          CSS property, which means :active shadow / transform changes are animated
          over 150ms.  On a quick tap (especially in Chrome DevTools touch-emulation
          or fast mouse clicks) the :active state ends before the animation finishes,
@@ -321,7 +323,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+        transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), transform var(--dur-instant) var(--ease-out);
         color: var(--neu-text);
         border: none;
         cursor: pointer;
@@ -843,3 +845,280 @@
       }
 
 @tailwind utilities;
+
+/* App-wide modern-soft layer. Existing Tailwind utilities remain available for product logic. */
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  transition: background-color var(--dur-medium) var(--ease-out), color var(--dur-medium) var(--ease-out);
+}
+
+.hallmark-app,
+.hallmark-reader {
+  background-color: var(--color-paper) !important;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  --neu-bg: var(--color-paper);
+  --neu-text: var(--color-ink);
+  --neu-highlight: var(--color-accent);
+  --neu-shadow-light: transparent;
+  --neu-shadow-dark: transparent;
+}
+
+.hallmark-page {
+  background-color: var(--color-paper) !important;
+  color: var(--color-ink);
+}
+
+.hallmark-heading {
+  color: var(--color-ink) !important;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+
+.hallmark-muted {
+  color: var(--color-muted) !important;
+}
+
+.hallmark-danger {
+  color: var(--color-error) !important;
+}
+
+.hallmark-card,
+.hallmark-app .neu-flat,
+.hallmark-reader .neu-flat {
+  background-color: var(--color-paper-2) !important;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card) !important;
+  color: var(--color-ink);
+}
+
+.hallmark-pressed,
+.hallmark-app .neu-pressed,
+.hallmark-reader .neu-pressed {
+  background-color: var(--color-paper-3) !important;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-input);
+  box-shadow: none !important;
+  color: var(--color-ink);
+}
+
+.hallmark-input,
+.hallmark-app .neu-input {
+  min-height: 2.75rem;
+  background-color: var(--color-paper) !important;
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-input);
+  box-shadow: none !important;
+  color: var(--color-ink) !important;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.hallmark-input::placeholder,
+.hallmark-app .neu-input::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+.hallmark-button,
+.hallmark-app .neu-btn,
+.hallmark-reader .neu-btn {
+  min-height: 2.75rem;
+  background-color: var(--color-paper-2) !important;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-input);
+  box-shadow: none !important;
+  color: var(--color-ink) !important;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+
+.hallmark-button--primary,
+.hallmark-app .bg-rose-400,
+.hallmark-reader .bg-rose-400,
+.hallmark-app .bg-rose-500,
+.hallmark-reader .bg-rose-500 {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent-ink) !important;
+  box-shadow: 0 8px 18px -12px var(--color-accent) !important;
+}
+
+.hallmark-button--primary:focus-visible,
+.hallmark-app .bg-rose-400:focus-visible,
+.hallmark-reader .bg-rose-400:focus-visible {
+  outline-color: var(--color-paper);
+}
+
+.hallmark-app .bg-rose-400\/10,
+.hallmark-reader .bg-rose-400\/10,
+.hallmark-app .bg-rose-100,
+.hallmark-reader .bg-rose-100 {
+  background-color: var(--color-accent-soft) !important;
+  color: var(--color-accent-strong);
+}
+
+.hallmark-app .text-rose-400,
+.hallmark-reader .text-rose-400,
+.hallmark-app .text-rose-500,
+.hallmark-reader .text-rose-500,
+.hallmark-app .text-rose-600,
+.hallmark-reader .text-rose-600 {
+  color: var(--color-accent-strong) !important;
+}
+
+.hallmark-app .bg-red-500,
+.hallmark-reader .bg-red-500 {
+  background-color: var(--color-error) !important;
+  border-color: var(--color-error) !important;
+  color: var(--color-accent-ink) !important;
+}
+
+.hallmark-app .bg-\[\#2d3748\],
+.hallmark-reader .bg-\[\#2d3748\] {
+  background-color: var(--color-paper) !important;
+}
+
+.hallmark-app .bg-\[\#e0e5ec\],
+.hallmark-reader .bg-\[\#e0e5ec\] {
+  background-color: var(--color-paper) !important;
+}
+
+.hallmark-app .text-slate-700,
+.hallmark-reader .text-slate-700,
+.hallmark-app .text-slate-600,
+.hallmark-reader .text-slate-600 {
+  color: var(--color-ink) !important;
+}
+
+.hallmark-app .text-slate-500,
+.hallmark-reader .text-slate-500,
+.hallmark-app .text-slate-400,
+.hallmark-reader .text-slate-400 {
+  color: var(--color-muted) !important;
+}
+
+.hallmark-reader-toolbar {
+  background-color: var(--color-paper);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  color: var(--color-ink);
+}
+
+.hallmark-tabbar {
+  min-height: 4.5rem;
+  padding: var(--space-2xs);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: calc(var(--radius-card) + var(--space-2xs));
+  background-color: var(--color-paper-2);
+  box-shadow: var(--shadow-float);
+}
+
+.hallmark-tab-button {
+  display: inline-flex;
+  min-width: 3.25rem;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3xs);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-input);
+  background-color: transparent;
+  color: var(--color-muted);
+  flex-direction: column;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
+
+.hallmark-tab-button--active {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-rule);
+  color: var(--color-accent-strong);
+}
+
+.hallmark-tab-label {
+  font-size: 0.625rem;
+  letter-spacing: 0.01em;
+}
+
+:where(.hallmark-app, .hallmark-reader) :focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+:where(.hallmark-app, .hallmark-reader) button:active:not(:disabled),
+:where(.hallmark-app, .hallmark-reader) [role="button"]:active:not([aria-disabled="true"]) {
+  transform: translateY(1px);
+}
+
+:where(.hallmark-app, .hallmark-reader) button:disabled,
+:where(.hallmark-app, .hallmark-reader) input:disabled,
+:where(.hallmark-app, .hallmark-reader) textarea:disabled,
+:where(.hallmark-app, .hallmark-reader) select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+:where(.hallmark-app, .hallmark-reader) [aria-busy="true"] {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+:where(.hallmark-app, .hallmark-reader) [aria-invalid="true"] {
+  border-color: var(--color-error) !important;
+}
+
+:where(.hallmark-app, .hallmark-reader) [data-state="success"] {
+  border-color: var(--color-success) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hallmark-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .hallmark-button:hover,
+  .hallmark-app .neu-btn:hover,
+  .hallmark-reader .neu-btn:hover {
+    background-color: var(--color-paper-3) !important;
+    border-color: var(--color-rule-2);
+  }
+
+  .hallmark-button--primary:hover,
+  .hallmark-app .bg-rose-400:hover,
+  .hallmark-reader .bg-rose-400:hover {
+    background-color: var(--color-accent-strong) !important;
+  }
+}
+
+@media (max-width: 24rem) {
+  .hallmark-tabbar {
+    margin-inline: calc(var(--space-2xs) * -1);
+  }
+
+  .hallmark-tab-button {
+    min-width: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hallmark-app *,
+  .hallmark-reader * {
+    animation-duration: 150ms !important;
+    transition-duration: 150ms !important;
+    scroll-behavior: auto !important;
+  }
+}

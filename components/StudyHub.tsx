@@ -168,7 +168,7 @@ const HighlightBookMultiSelect = ({
     <div className="relative" ref={containerRef}>
       <div
         onClick={handleToggle}
-        className={`w-full p-2 h-[42px] rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.99] ${inputClass}`}
+        className={`w-full p-2 h-[42px] rounded-xl flex items-center justify-between cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.99] ${inputClass}`}
       >
         <div className="flex gap-1.5 w-full pr-6 overflow-hidden">
           {selected.length === 0 && <span className="text-sm opacity-50 px-2 whitespace-nowrap">{'所有书籍'}</span>}
@@ -305,7 +305,7 @@ const PaperCssSingleSelectDropdown = ({
     <div className="relative" ref={containerRef}>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full p-2 min-h-[42px] rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.99] ${inputClass}`}
+        className={`w-full p-2 min-h-[42px] rounded-xl flex items-center justify-between cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.99] ${inputClass}`}
       >
         <div className="flex items-center gap-2 px-2">
           {selectedOption ? (
@@ -357,26 +357,16 @@ const StudyHub: React.FC<StudyHubProps> = ({
   onJumpToBookHighlight,
 }) => {
   // ─── Theme classes (matching Library.tsx) ───
-  const containerClass = isDarkMode ? 'bg-[#2d3748] text-slate-200' : 'neu-bg text-slate-600';
-  const cardClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[6px_6px_12px_#232b39,-6px_-6px_12px_#374357]'
-    : 'neu-flat';
-  const pressedClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]'
-    : 'neu-pressed';
-  const inputClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357] text-slate-200 placeholder-slate-500'
-    : 'bg-[var(--neu-bg)] shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] text-slate-600 placeholder-slate-400';
-  const btnClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357] text-slate-200'
-    : 'neu-btn';
-  const headingClass = isDarkMode ? 'text-slate-200' : 'text-slate-700';
-  const subTextClass = isDarkMode ? 'text-slate-400' : 'text-slate-500';
-  const activeBtnClass = isDarkMode
-    ? 'active:shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357] active:translate-y-px'
-    : 'active:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] active:translate-y-px';
-  const disabledIconButtonClass = `${btnClass} ${isDarkMode ? 'text-slate-500' : 'text-slate-400'} opacity-55 cursor-not-allowed`;
-  const enabledDangerIconButtonClass = `${isDarkMode ? 'text-[#cf8f97]' : 'text-[#bf616b]'} ${btnClass} ${activeBtnClass}`;
+  const containerClass = 'hallmark-page';
+  const cardClass = 'hallmark-card';
+  const pressedClass = 'hallmark-pressed';
+  const inputClass = 'hallmark-input';
+  const btnClass = 'hallmark-button hallmark-button--secondary';
+  const headingClass = 'hallmark-heading';
+  const subTextClass = 'hallmark-muted';
+  const activeBtnClass = 'active:translate-y-px';
+  const disabledIconButtonClass = `${btnClass} hallmark-muted opacity-55 cursor-not-allowed`;
+  const enabledDangerIconButtonClass = `hallmark-danger ${btnClass} ${activeBtnClass}`;
 
   // ─── Top-level state ───
   const [activeTab, setActiveTab] = useState<HubTab>('notes');
@@ -2332,7 +2322,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
           <div className="relative">
             <button
               onClick={() => setFilterOpen(!filterOpen)}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${
                 filterOpen || selectedTags.length > 0 ? 'bg-rose-400 text-white shadow-md' : `${cardClass} text-slate-400 hover:text-rose-400`
               }`}
             >
@@ -2371,7 +2361,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               const isSelected = selectedBookIds.includes(book.id);
               return (
                 <div key={book.id} onClick={() => toggleBook(book.id)}
-                  className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all active:scale-[0.98] ${isSelected ? 'ring-1 ring-rose-400' : ''} ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}
+                  className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98] ${isSelected ? 'ring-1 ring-rose-400' : ''} ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}
                 >
                   <div className={`w-10 h-14 rounded-lg overflow-hidden flex-shrink-0 ${pressedClass}`}>
                     {book.coverUrl ? (
@@ -2396,7 +2386,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               const isSelected = selectedBookIds.includes(book.id);
               return (
                 <div key={book.id} onClick={() => toggleBook(book.id)}
-                  className={`relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer transition-all ${isSelected ? 'ring-1 ring-rose-400' : ''} ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}
+                  className={`relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] ${isSelected ? 'ring-1 ring-rose-400' : ''} ${isDarkMode ? 'bg-white/5' : 'bg-white'}`}
                 >
                   {book.coverUrl ? (
                     <ResolvedImage src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} />
@@ -2489,7 +2479,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
         <label className={`text-xs font-medium mb-1 block ${subTextClass}`}>选择笔记本主人（无法更改）</label>
         <div
           onClick={() => !disabled && setIsOpen(!isOpen)}
-          className={`w-full p-2 min-h-[42px] rounded-xl flex items-center justify-between transition-all ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:scale-[0.99]'} ${inputClass}`}
+          className={`w-full p-2 min-h-[42px] rounded-xl flex items-center justify-between transition-[transform,opacity,background-color,color,border-color,box-shadow] ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:scale-[0.99]'} ${inputClass}`}
         >
           <span className="text-sm truncate">{selectedPersona?.name || '请选择'}</span>
           {!disabled && <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
@@ -2636,7 +2626,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
       <div className="flex items-center justify-between px-6 pt-4 pb-2">
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">我的笔记本</h2>
         <button onClick={() => { setShowCreateModal(true); setCreatePersonaId(activePersonaId || personas[0]?.id || ''); }}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${btnClass} text-rose-400`}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass} text-rose-400`}
         >
           <Plus size={20} />
         </button>
@@ -2659,7 +2649,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
             const coverUrl = getNotebookCoverUrl(nb);
             return (
               <div key={nb.id} onClick={() => openNotebook(nb)}
-                className={`${cardClass} p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${isDarkMode ? 'active:shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'active:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)]'}`}
+                className={`${cardClass} p-4 rounded-2xl cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98] ${isDarkMode ? 'active:shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'active:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)]'}`}
               >
                 <div className="flex items-center gap-3">
                   {/* Notebook cover thumbnail (fixed size) */}
@@ -2698,13 +2688,13 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={(e) => openEditNotebookModal(e, nb)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${btnClass} ${subTextClass} hover:text-rose-400`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${btnClass} ${subTextClass} hover:text-rose-400`}
                     >
                       <Edit2 size={14} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(deleteConfirmId === nb.id ? null : nb.id); }}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${btnClass} ${subTextClass} hover:text-rose-400`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${btnClass} ${subTextClass} hover:text-rose-400`}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -2789,7 +2779,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               <button onClick={closeCreateModal} className={`flex-1 py-2.5 rounded-xl text-sm ${btnClass}`}>取消</button>
               <button onClick={handleCreateNotebook}
                 disabled={createSelectedBookIds.length === 0}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                   createSelectedBookIds.length > 0 ? 'bg-rose-400 text-white shadow-md active:scale-95' : `${pressedClass} text-slate-400`
                 }`}
               >
@@ -2855,7 +2845,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                       setActiveNotebook(updated);
                       setNotebooks((prev) => prev.map((n) => n.id === updated.id ? updated : n));
                     }}
-                      className={`rounded-xl overflow-hidden border-2 transition-all ${isActive ? 'border-rose-400 scale-[0.97]' : 'border-transparent'}`}
+                      className={`rounded-xl overflow-hidden border-2 transition-[transform,opacity,background-color,color,border-color,box-shadow] ${isActive ? 'border-rose-400 scale-[0.97]' : 'border-transparent'}`}
                     >
                       <div className="w-full h-16 rounded-t-lg"
                         style={{
@@ -2957,7 +2947,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   }} className={`flex-1 h-10 rounded-xl text-sm ${btnClass} ${activeBtnClass} flex items-center justify-center gap-1.5`}
                     style={{ color: paperCssApplySuccess ? 'rgb(var(--theme-500) / 1)' : undefined, transition: 'color 0.3s ease' }}
                   >
-                    <span className={`inline-flex transition-all duration-300 ${paperCssApplySuccess ? 'w-[15px] opacity-100 scale-100' : 'w-0 opacity-0 scale-50'}`} style={{ overflow: 'hidden' }}>
+                    <span className={`inline-flex transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssApplySuccess ? 'w-[15px] opacity-100 scale-100' : 'w-0 opacity-0 scale-50'}`} style={{ overflow: 'hidden' }}>
                       <Check size={15} className="shrink-0" />
                     </span>
                     应用
@@ -2970,7 +2960,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   }} className={`flex-1 h-10 rounded-xl text-sm ${btnClass} ${activeBtnClass} flex items-center justify-center gap-1.5`}
                     style={{ color: paperCssClearSuccess ? 'rgb(var(--theme-500) / 1)' : undefined, transition: 'color 0.3s ease' }}
                   >
-                    <span className={`inline-flex transition-all duration-300 ${paperCssClearSuccess ? 'w-[15px] opacity-100 scale-100' : 'w-0 opacity-0 scale-50'}`} style={{ overflow: 'hidden' }}>
+                    <span className={`inline-flex transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssClearSuccess ? 'w-[15px] opacity-100 scale-100' : 'w-0 opacity-0 scale-50'}`} style={{ overflow: 'hidden' }}>
                       <Eraser size={15} className="shrink-0" />
                     </span>
                     清空
@@ -3013,12 +3003,12 @@ const StudyHub: React.FC<StudyHubProps> = ({
                         setPaperCssSaveSuccess(true);
                         paperCssSaveTimerRef.current = window.setTimeout(() => setPaperCssSaveSuccess(false), 1600);
                       }}
-                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center relative overflow-hidden ${btnClass} ${activeBtnClass} transition-all`}
+                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center relative overflow-hidden ${btnClass} ${activeBtnClass} transition-[transform,opacity,background-color,color,border-color,box-shadow]`}
                       style={{ color: 'rgb(var(--theme-500) / 1)' }}
                       title="保存"
                     >
-                      <Save size={16} className={`transition-all duration-300 ${paperCssSaveSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`} />
-                      <Check size={16} className={`absolute transition-all duration-300 ${paperCssSaveSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                      <Save size={16} className={`transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssSaveSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`} />
+                      <Check size={16} className={`absolute transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssSaveSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                     </button>
                     {/* Edit (rename) */}
                     <button
@@ -3033,20 +3023,20 @@ const StudyHub: React.FC<StudyHubProps> = ({
                           paperCssEditTimerRef.current = window.setTimeout(() => setPaperCssEditSuccess(false), 1600);
                         }
                       }}
-                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center relative overflow-hidden transition-all ${
+                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center relative overflow-hidden transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                         cssSelectedPreset ? `${btnClass} ${activeBtnClass}` : disabledIconButtonClass
                       }`}
                       title="重命名"
                     >
-                      <Edit2 size={16} className={`transition-all duration-300 ${paperCssEditSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`} />
-                      <Check size={16} className={`absolute transition-all duration-300 ${paperCssEditSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                      <Edit2 size={16} className={`transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssEditSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`} />
+                      <Check size={16} className={`absolute transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ${paperCssEditSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                     </button>
                     {/* Delete */}
                     <button
                       type="button"
                       disabled={!cssSelectedPreset}
                       onClick={() => cssSelectedPreset && handleDeletePaperCssPreset(cssSelectedPreset.id)}
-                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center transition-all ${
+                      className={`w-10 h-10 aspect-square shrink-0 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                         cssSelectedPreset ? enabledDangerIconButtonClass : disabledIconButtonClass
                       }`}
                       title="删除"
@@ -3133,7 +3123,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               <button onClick={closeEditModal} className={`flex-1 py-2.5 rounded-xl text-sm ${btnClass}`}>取消</button>
               <button onClick={handleSaveEditNotebook}
                 disabled={editSelectedBookIds.length === 0}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                   editSelectedBookIds.length > 0 ? 'bg-rose-400 text-white shadow-md active:scale-95' : `${pressedClass} text-slate-400`
                 }`}
               >
@@ -3162,7 +3152,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
         <div className="px-6 pt-4 pb-4 space-y-4">
           {/* Circular back button */}
           <button onClick={() => switchNotesView('list', () => setActiveNotebook(null))}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${btnClass}`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass}`}
           >
             <ArrowLeft size={20} />
           </button>
@@ -3212,12 +3202,12 @@ const StudyHub: React.FC<StudyHubProps> = ({
             <span className={`text-sm ${subTextClass}`}>{activeNotebook.notes.length} 篇笔记</span>
             <div className="flex items-center gap-2">
               <button onClick={() => { setPaperUrlMode(false); setTempPaperUrl(''); setShowPaperModal(true); }}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm transition-all active:scale-95 ${btnClass} ${subTextClass}`}
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass} ${subTextClass}`}
               >
                 <Scroll size={16} /> 选纸张
               </button>
               <button onClick={handleAddNote}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm transition-all active:scale-95 ${btnClass} ${subTextClass}`}
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass} ${subTextClass}`}
               >
                 <Feather size={16} /> 写笔记
               </button>
@@ -3242,7 +3232,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               );
               return (
               <div key={note.id} onClick={() => openNoteEditor(note)}
-                className={`sh-paper p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] border ${isDarkMode ? 'border-slate-700/30' : 'border-amber-200/40'}`}
+                className={`sh-paper p-4 rounded-2xl cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98] border ${isDarkMode ? 'border-slate-700/30' : 'border-amber-200/40'}`}
                 style={{
                   backgroundColor: paperStyle.bg,
                   ...(!activeNotebook.paperCssApplied && paperStyle.css !== 'none' && { backgroundImage: paperStyle.css }),
@@ -3295,7 +3285,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
         <div className="flex items-center justify-between px-6 pt-4 pb-2">
           {/* Circular back button */}
           <button onClick={() => { handleSaveNote(); switchNotesView('detail'); }}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${btnClass}`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass}`}
           >
             <ArrowLeft size={20} />
           </button>
@@ -3323,7 +3313,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   onPointerLeave={clearPressedNoteStyleButton}
                   onPointerCancel={clearPressedNoteStyleButton}
                   onClick={preset.onClick}
-                  className={`w-full h-9 rounded-lg text-xs font-semibold flex items-center justify-center whitespace-nowrap transition-all ${
+                  className={`w-full h-9 rounded-lg text-xs font-semibold flex items-center justify-center whitespace-nowrap transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                     isPressed ? `${pressedClass} scale-[0.96]` : `${btnClass} active:scale-[0.98]`
                   } ${preset.active ? '' : 'text-slate-500 hover:text-slate-400'}`}
                   style={preset.active ? { color: 'rgb(var(--theme-500) / 1)' } : undefined}
@@ -3415,7 +3405,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                 setShowCharSelect(!showCharSelect);
               }}
               disabled={isAiLoading || !noteContent.trim()}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${
                 isAiLoading || !noteContent.trim()
                   ? `${pressedClass} text-slate-400`
                   : showCharSelect
@@ -3469,13 +3459,13 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   );
                 })}
               </div>
-              <div className={`grid transition-all duration-300 ease-in-out ${
+              <div className={`grid transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-300 ease-in-out ${
                 selectedCharIds.length > 0 ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'
               }`}>
                 <div className="overflow-hidden">
                   <button
                     onClick={handleSummonAiCommentBatch}
-                    className="w-full py-2 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-all"
+                    className="w-full py-2 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                   >
                     召唤 {selectedCharIds.length} 个角色评论
                   </button>
@@ -3633,7 +3623,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
         <div className="flex items-center justify-between px-6 pt-4 pb-2">
           <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">问答记录</h2>
           <button onClick={() => { setQuizError(''); setShowQuizConfigModal(true); }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${btnClass} text-rose-400`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass} text-rose-400`}
           >
             <Plus size={20} />
           </button>
@@ -3692,7 +3682,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                     });
                   }
                 }}
-                className={`${cardClass} p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98]`}
+                className={`${cardClass} p-4 rounded-2xl cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-[0.98]`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
@@ -3815,7 +3805,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                 <div className="flex gap-2">
                   {([['single', '单选题'], ['multiple', '多选题'], ['truefalse', '判断题']] as const).map(([key, label]) => (
                     <button key={key} onClick={() => setQcType(key)}
-                      className={`flex-1 py-2 rounded-xl text-sm transition-all ${
+                      className={`flex-1 py-2 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                         qcType === key ? 'bg-rose-400 text-white shadow-md' : `${btnClass}`
                       }`}
                     >
@@ -3832,7 +3822,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   <div className="flex gap-2">
                     {[2, 3, 4, 5].map((n) => (
                       <button key={n} onClick={() => setQcOptionCount(n)}
-                        className={`w-10 h-10 rounded-xl text-sm transition-all flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] flex items-center justify-center ${
                           qcOptionCount === n ? 'bg-rose-400 text-white shadow-md' : `${btnClass}`
                         }`}
                       >
@@ -3863,7 +3853,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               <button onClick={closeQuizConfigModal} className={`flex-1 py-2.5 rounded-xl text-sm ${btnClass}`}>取消</button>
               <button onClick={handleStartQuiz}
                 disabled={qcBookIds.length === 0 || !qcPrompt.trim() || isQuizGenerating}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                   qcBookIds.length > 0 && qcPrompt.trim() && !isQuizGenerating ? 'bg-rose-400 text-white shadow-md active:scale-95' : `${pressedClass} text-slate-400`
                 }`}
               >
@@ -3901,7 +3891,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
             <X size={20} />
           </button>
           <div className={`flex-1 h-2 rounded-full overflow-hidden ${pressedClass}`}>
-            <div className="h-full bg-rose-400 rounded-full transition-all" style={{ width: `${((quizCurrentIndex + 1) / total) * 100}%` }} />
+            <div className="h-full bg-rose-400 rounded-full transition-[transform,opacity,background-color,color,border-color,box-shadow]" style={{ width: `${((quizCurrentIndex + 1) / total) * 100}%` }} />
           </div>
           <span className={`text-sm font-medium ${headingClass}`}>{quizCurrentIndex + 1}/{total}</span>
         </div>
@@ -3918,7 +3908,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               const isSelected = selected.includes(idx);
               return (
                 <button key={idx} onClick={() => handleSelectAnswer(current.id, idx)}
-                  className={`w-full text-left p-3 rounded-xl text-sm transition-all flex items-center gap-3 ${
+                  className={`w-full text-left p-3 rounded-xl text-sm transition-[transform,opacity,background-color,color,border-color,box-shadow] flex items-center gap-3 ${
                     isSelected ? 'bg-rose-400 text-white shadow-md' : `${btnClass}`
                   }`}
                 >
@@ -3939,14 +3929,14 @@ const StudyHub: React.FC<StudyHubProps> = ({
         <div className="flex items-center justify-between gap-3">
           <button onClick={() => { setQuizSlideDir('left'); setQuizCurrentIndex((i) => Math.max(0, i - 1)); }}
             disabled={quizCurrentIndex === 0}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${quizCurrentIndex === 0 ? `${pressedClass} text-slate-400` : `${btnClass} text-rose-400 active:scale-95`}`}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${quizCurrentIndex === 0 ? `${pressedClass} text-slate-400` : `${btnClass} text-rose-400 active:scale-95`}`}
           >
             <ChevronLeft size={20} />
           </button>
 
           {quizCurrentIndex === total - 1 ? (
             <button onClick={handleSubmitQuiz}
-              className="flex-1 py-3 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-all"
+              className="flex-1 py-3 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
             >
               {isAiLoading ? (
                 <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" /> 正在生成总评...</span>
@@ -3954,7 +3944,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
             </button>
           ) : (
             <button onClick={() => { setQuizSlideDir('right'); setQuizCurrentIndex((i) => Math.min(total - 1, i + 1)); }}
-              className="flex-1 py-3 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-all"
+              className="flex-1 py-3 rounded-xl text-sm font-medium bg-rose-400 text-white shadow-md active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
             >
               下一题
             </button>
@@ -3962,7 +3952,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
 
           <button onClick={() => { setQuizSlideDir('right'); setQuizCurrentIndex((i) => Math.min(total - 1, i + 1)); }}
             disabled={quizCurrentIndex === total - 1}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${quizCurrentIndex === total - 1 ? `${pressedClass} text-slate-400` : `${btnClass} text-rose-400 active:scale-95`}`}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${quizCurrentIndex === total - 1 ? `${pressedClass} text-slate-400` : `${btnClass} text-rose-400 active:scale-95`}`}
           >
             <ChevronRight size={20} />
           </button>
@@ -4065,7 +4055,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               disabled={isQuizCommentRefreshing || isAiLoading}
               aria-label="刷新总评"
               title="刷新总评"
-              className={`w-8 h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-all ${
+              className={`w-8 h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                 isQuizCommentRefreshing || isAiLoading
                   ? `${pressedClass} text-slate-400 cursor-not-allowed`
                   : `${btnClass} text-rose-400 active:scale-95`
@@ -4094,7 +4084,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
             返回列表
           </button>
           <button onClick={() => { switchQuizView('history', () => { setActiveQuizSession(null); setQuizError(''); setShowQuizConfigModal(true); }); }}
-            className="flex-1 py-2.5 rounded-xl text-sm bg-rose-400 text-white shadow-md active:scale-95 transition-all flex items-center justify-center gap-1"
+            className="flex-1 py-2.5 rounded-xl text-sm bg-rose-400 text-white shadow-md active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow] flex items-center justify-center gap-1"
           >
             <RotateCcw size={14} /> 再来一次
           </button>
@@ -4144,7 +4134,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               <>
                 <div className="px-6 py-4 flex-shrink-0">
                   <button onClick={() => { switchQuizView('history', () => { setActiveQuizSession(null); }); }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 ${btnClass}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-[transform,opacity,background-color,color,border-color,box-shadow] active:scale-95 ${btnClass}`}
                   >
                     <ArrowLeft size={20} />
                   </button>
@@ -4166,7 +4156,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
               <button
                 type="button"
                 onClick={() => setHubHighlightColorFilter(null)}
-                className={`h-6 px-2 rounded-full text-[10px] font-bold transition-all ${
+                className={`h-6 px-2 rounded-full text-[10px] font-bold transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                   !hubHighlightColorFilter
                     ? 'text-rose-400 bg-rose-400/10'
                     : isDarkMode ? 'text-slate-400' : 'text-slate-500'
@@ -4179,7 +4169,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   key={color}
                   type="button"
                   onClick={() => setHubHighlightColorFilter(hubHighlightColorFilter === color ? null : color)}
-                  className={`w-5 h-5 rounded-full border-2 transition-all ${
+                  className={`w-5 h-5 rounded-full border-2 transition-[transform,opacity,background-color,color,border-color,box-shadow] ${
                     hubHighlightColorFilter === color ? 'border-rose-400 scale-110' : 'border-transparent'
                   }`}
                   style={{ backgroundColor: color }}
@@ -4248,7 +4238,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                       return (
                       <div
                         key={item.id}
-                        className={`rounded-xl p-3 cursor-pointer transition-all ${cardClass}`}
+                        className={`rounded-xl p-3 cursor-pointer transition-[transform,opacity,background-color,color,border-color,box-shadow] ${cardClass}`}
                         onClick={toggleExpand}
                       >
                         <div className="flex items-start gap-2">
@@ -4281,7 +4271,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                           <button
                             type="button"
                             onClick={() => onJumpToBookHighlight?.(entry.bookId, item.chapterIndex, item.range.start)}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-all"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-white bg-rose-400 shadow-lg hover:bg-rose-500 active:scale-95 transition-[transform,opacity,background-color,color,border-color,box-shadow]"
                           >
                             <ExternalLink size={13} />
                           </button>

@@ -330,17 +330,13 @@ const Stats: React.FC<StatsProps> = ({
   activeCharacterId = null,
   worldBookEntries = [],
 }) => {
-  const containerClass = isDarkMode ? 'bg-[#2d3748] text-slate-200' : 'neu-bg text-slate-600';
-  const cardClass = isDarkMode ? 'bg-[#2d3748] shadow-[6px_6px_12px_#232b39,-6px_-6px_12px_#374357]' : 'neu-flat';
-  const pressedClass = isDarkMode ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]' : 'neu-pressed';
-  const goalSearchInputClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[inset_3px_3px_6px_#232b39,inset_-3px_-3px_6px_#374357]'
-    : 'neu-pressed';
-  const btnClass = isDarkMode
-    ? 'bg-[#2d3748] shadow-[5px_5px_10px_#232b39,-5px_-5px_10px_#374357] text-slate-200'
-    : 'neu-btn';
-  const headingClass = isDarkMode ? 'text-slate-200' : 'text-slate-700';
-  const axisTextColor = isDarkMode ? '#94a3b8' : '#64748b';
+  const containerClass = 'hallmark-page';
+  const cardClass = 'hallmark-card';
+  const pressedClass = 'hallmark-pressed';
+  const goalSearchInputClass = 'hallmark-input';
+  const btnClass = 'hallmark-button hallmark-button--secondary';
+  const headingClass = 'hallmark-heading';
+  const axisTextColor = 'var(--color-muted)';
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthOffset, setMonthOffset] = useState(0);
   const [chartWidth, setChartWidth] = useState(0);
@@ -1071,7 +1067,7 @@ const Stats: React.FC<StatsProps> = ({
     setPressedCard((prev) => (prev === cardKey ? null : prev));
   };
   const getCardClassName = (cardKey: SummaryCardKey) => {
-    return `${pressedCard === cardKey ? pressedClass : cardClass} p-4 flex flex-col justify-between h-28 rounded-2xl transition-all duration-100 active:scale-[0.98] border-none text-left`;
+    return `${pressedCard === cardKey ? pressedClass : cardClass} p-4 flex flex-col justify-between h-28 rounded-2xl transition-[transform,opacity,background-color,color,border-color,box-shadow] duration-100 active:scale-[0.98] border-none text-left`;
   };
   const getCardEvents = (cardKey: SummaryCardKey) => ({
     onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -1669,5 +1665,4 @@ const Stats: React.FC<StatsProps> = ({
 };
 
 export default Stats;
-
 
