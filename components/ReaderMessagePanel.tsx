@@ -66,6 +66,7 @@ interface ReaderMessagePanelProps {
   safeAreaTop: number;
   safeAreaBottom: number;
   openRequestToken: number;
+  onOpenChange: (isOpen: boolean) => void;
   activeBook: Book | null;
   appSettings: AppSettings;
   setAppSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
@@ -469,6 +470,7 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   safeAreaTop,
   safeAreaBottom,
   openRequestToken,
+  onOpenChange,
   activeBook,
   appSettings,
   setAppSettings,
@@ -2341,6 +2343,10 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
     if (openRequestToken <= 0) return;
     setIsAiPanelOpen(true);
   }, [openRequestToken]);
+
+  useEffect(() => {
+    onOpenChange(isAiPanelOpen);
+  }, [isAiPanelOpen, onOpenChange]);
 
   useEffect(() => {
     if (!isAiPanelOpen) return;
