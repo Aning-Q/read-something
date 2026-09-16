@@ -21,7 +21,7 @@ Playful — friendly and tactile, but restrained enough for long reading session
 
 ## Typography
 
-- Display: `PING FANG SHAO HUA`, normal, 600.
+- Display: Apple/PingFang system stack, normal, 600. It intentionally matches the UI body family so functional views read as one product.
 - Body: Apple/PingFang system stack, normal, 400–600.
 - Mono: SF Mono stack, captions and technical values only.
 - No italic headings. Reading content continues to honour the reader's user-selected font.

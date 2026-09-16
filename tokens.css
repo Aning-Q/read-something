@@ -17,7 +17,7 @@
   --color-error: oklch(56% 0.19 25);
   --color-overlay: oklch(24% 0.03 278 / 0.24);
 
-  --font-display: "PING FANG SHAO HUA", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-outlier: "SFMono-Regular", "SF Mono", ui-monospace, monospace;
 

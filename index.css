@@ -871,6 +871,11 @@ body {
   --neu-shadow-dark: transparent;
 }
 
+.hallmark-app .font-sans,
+.hallmark-reader .font-sans {
+  font-family: var(--font-body);
+}
+
 .hallmark-page {
   background-color: var(--color-paper) !important;
   color: var(--color-ink);
