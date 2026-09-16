@@ -1,7 +1,7 @@
 ﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Check,
-  MessagesSquare,
+  ChevronDown,
   Pencil,
   Quote,
   RotateCcw,
@@ -65,6 +65,7 @@ interface ReaderMessagePanelProps {
   apiPresets: ApiPreset[];
   safeAreaTop: number;
   safeAreaBottom: number;
+  openRequestToken: number;
   activeBook: Book | null;
   appSettings: AppSettings;
   setAppSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
@@ -128,7 +129,6 @@ const getTailAppendedMessages = (prev: ChatBubble[], next: ChatBubble[]) => {
 };
 
 const AI_PANEL_HEIGHT_STORAGE_KEY = 'app_reader_ai_panel_height_v1';
-const AI_FAB_OPEN_DELAY_MS = 120;
 const AI_REPLY_FIRST_BUBBLE_DELAY_MS = 420;
 const AI_REPLY_BUBBLE_INTERVAL_MS = 1500;
 const MIN_PANEL_HEIGHT_RATIO = 0.4;
@@ -468,6 +468,7 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   apiPresets,
   safeAreaTop,
   safeAreaBottom,
+  openRequestToken,
   activeBook,
   appSettings,
   setAppSettings,
@@ -506,8 +507,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   onTtsExportAudiobook,
 }) => {
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(true);
-  const [isAiFabOpening, setIsAiFabOpening] = useState(false);
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [messages, setMessages] = useState<ChatBubble[]>([]);
   const [inputText, setInputText] = useState('');
   const [activeGenerationMode, setActiveGenerationMode] = useState<GenerationMode | null>(null);
@@ -534,7 +533,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   const [isPanelDragging, setIsPanelDragging] = useState(false);
   const [isConversationHydrated, setIsConversationHydrated] = useState(false);
   const [isBookSummaryHydrated, setIsBookSummaryHydrated] = useState(false);
-  const [fabBottomPx, setFabBottomPx] = useState(24);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [contextMenuLayout, setContextMenuLayout] = useState<{ left: number; top: number } | null>(null);
   const [favoritedMessageIds, setFavoritedMessageIds] = useState<Set<string>>(new Set());
@@ -558,8 +556,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const aiPanelRef = useRef<HTMLDivElement>(null);
-  const isAiPanelOpenRef = useRef(isAiPanelOpen);
-  const aiFabOpenTimerRef = useRef<number | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<number | null>(null);
@@ -2238,13 +2234,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
       const incoming = detail.bucket;
       const prevMessages = messagesRef.current;
 
-      if (!isAiPanelOpenRef.current && incoming.messages.length > prevMessages.length) {
-        const diff = incoming.messages.length - prevMessages.length;
-        if (diff > 0) {
-          setUnreadMessageCount((count) => Math.min(99, count + diff));
-        }
-      }
-
       const appended = detail.reason === 'app-proactive' ? getTailAppendedMessages(prevMessages, incoming.messages) : [];
       const canRevealSequentially = appended.length > 0 && appended.every((message) => message.sender === 'character');
 
@@ -2316,41 +2305,25 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
     });
   }, [readerContentRef]);
 
-  const measureFabBottom = useCallback(() => {
-    const readerRect = readerContentRef.current?.getBoundingClientRect();
-    if (!readerRect) {
-      setFabBottomPx(24);
-      return;
-    }
-    const viewportBottomGap = Math.max(0, window.innerHeight - readerRect.bottom);
-    const nextBottom = Math.max(16, Math.round(viewportBottomGap + 10));
-    setFabBottomPx(nextBottom);
-  }, [readerContentRef]);
-
   useEffect(() => {
     measurePanelBounds();
-    measureFabBottom();
     const resizeHandler = () => measurePanelBounds();
-    const resizeFabHandler = () => measureFabBottom();
     window.addEventListener('resize', resizeHandler);
-    window.addEventListener('resize', resizeFabHandler);
 
     const observed = readerContentRef.current;
     const observer =
       typeof ResizeObserver !== 'undefined' && observed
         ? new ResizeObserver(() => {
             measurePanelBounds();
-            measureFabBottom();
           })
         : null;
     observer?.observe(observed);
 
     return () => {
       window.removeEventListener('resize', resizeHandler);
-      window.removeEventListener('resize', resizeFabHandler);
       observer?.disconnect();
     };
-  }, [measurePanelBounds, measureFabBottom, readerContentRef]);
+  }, [measurePanelBounds, readerContentRef]);
 
   useEffect(() => {
     setPanelHeightPx((prev) => clamp(prev, panelBounds.min, panelBounds.max));
@@ -2365,12 +2338,9 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   }, [panelHeightPx]);
 
   useEffect(() => {
-    isAiPanelOpenRef.current = isAiPanelOpen;
-    if (isAiPanelOpen) {
-      setUnreadMessageCount(0);
-      setIsAiFabOpening(false);
-    }
-  }, [isAiPanelOpen]);
+    if (openRequestToken <= 0) return;
+    setIsAiPanelOpen(true);
+  }, [openRequestToken]);
 
   useEffect(() => {
     if (!isAiPanelOpen) return;
@@ -2418,9 +2388,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
           ...pending.remainingMessages,
         ], 'panel-unmount-flush');
         pendingGenerationRef.current = null;
-      }
-      if (aiFabOpenTimerRef.current) {
-        window.clearTimeout(aiFabOpenTimerRef.current);
       }
       if (toastTimerRef.current) {
         window.clearTimeout(toastTimerRef.current);
@@ -2485,19 +2452,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
 
     return () => window.cancelAnimationFrame(rafId);
   }, [contextMenu]);
-
-  const handleOpenAiPanelFromFab = () => {
-    if (isAiPanelOpen || isAiFabOpening) return;
-    setIsAiFabOpening(true);
-    if (aiFabOpenTimerRef.current) {
-      window.clearTimeout(aiFabOpenTimerRef.current);
-    }
-    aiFabOpenTimerRef.current = window.setTimeout(() => {
-      setIsAiPanelOpen(true);
-      setIsAiFabOpening(false);
-      aiFabOpenTimerRef.current = null;
-    }, AI_FAB_OPEN_DELAY_MS);
-  };
 
   const handleLoadMoreMessages = () => {
     const scroller = messagesContainerRef.current;
@@ -2572,7 +2526,8 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
       }
     }
 
-    const shouldCollapse = !drag.moved;
+    const downwardDistance = event.clientY - drag.startY;
+    const shouldCollapse = !drag.moved || downwardDistance >= 56;
     if (Number.isFinite(pendingDragHeightRef.current)) {
       const next = pendingDragHeightRef.current as number;
       releaseScrollDistLockAfterLayoutRef.current = true;
@@ -2882,9 +2837,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
         }
         setMessages((prev) => [...prev, aiMessage]);
         queueKeepLastMessageVisible();
-        if (!isAiPanelOpenRef.current) {
-          setUnreadMessageCount((prev) => Math.min(99, prev + 1));
-        }
       }
       pendingGenerationRef.current = null;
     } catch (error) {
@@ -3141,27 +3093,6 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
   return (
     <>
       {readerMoreAppearance.bubbleCssApplied && <style>{readerMoreAppearance.bubbleCssApplied}</style>}
-      {!isAiPanelOpen && (
-        <button
-          onClick={handleOpenAiPanelFromFab}
-          className={`reader-ai-fab absolute right-6 w-12 h-12 neu-btn rounded-full z-20 ${
-            isAiFabOpening ? 'neu-btn-active' : ''
-          }`}
-          style={{ bottom: `${fabBottomPx}px`, color: 'rgb(var(--theme-400) / 1)' }}
-        >
-          <MessagesSquare size={20} />
-          <span
-            className={`reader-ai-fab-badge absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] leading-none font-bold flex items-center justify-center ${
-              unreadMessageCount > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
-            } ${isDarkMode ? 'border border-slate-700 text-white' : 'border border-white/70 text-white'}`}
-            style={{ backgroundColor: 'rgb(var(--theme-500) / 1)' }}
-            aria-hidden={unreadMessageCount <= 0}
-          >
-            {unreadMessageCount > 0 ? unreadMessageCount : ''}
-          </span>
-        </button>
-      )}
-
       <div
         className={`absolute bottom-0 left-0 right-0 transition-[transform,opacity] ${isPanelDragging ? 'duration-75' : 'duration-500'} ease-in-out z-30 pointer-events-none ${
           isAiPanelOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
@@ -3191,7 +3122,7 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
           </div>
 
           <div className="flex flex-col h-[calc(100%-2rem)] min-h-0">
-          <div className="rm-header px-6 pb-2 flex items-center">
+          <div className="rm-header px-6 pb-2 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <div
                 className={`rm-avatar w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 border-transparent ${
@@ -3204,6 +3135,19 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
                 {characterNickname}
               </span>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsAiPanelOpen(false)}
+              className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center transition-colors ${
+                isDarkMode
+                  ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-700/60'
+                  : 'text-slate-400 hover:text-slate-700 hover:bg-white/60'
+              }`}
+              title="完全收起阅读角色"
+              aria-label="collapse-reader-character-panel"
+            >
+              <ChevronDown size={18} />
+            </button>
           </div>
 
           <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -3607,4 +3551,3 @@ const ReaderMessagePanel: React.FC<ReaderMessagePanelProps> = ({
 };
 
 export default ReaderMessagePanel;
-

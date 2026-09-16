@@ -11,6 +11,7 @@ import {
   Copy,
   Highlighter,
   List as ListIcon,
+  MessagesSquare,
   MoreHorizontal,
   Pause,
   Play,
@@ -791,6 +792,7 @@ const Reader: React.FC<ReaderProps> = ({
   const [closingTypographyColorEditor, setClosingTypographyColorEditor] = useState<TypographyColorKind | null>(null);
   const [isReaderAppearanceHydrated, setIsReaderAppearanceHydrated] = useState(false);
   const [isMoreSettingsOpen, setIsMoreSettingsOpen] = useState(false);
+  const [readerMessagePanelOpenRequest, setReaderMessagePanelOpenRequest] = useState(0);
   const [floatingPanelTopPx, setFloatingPanelTopPx] = useState(() => Math.max(0, safeAreaTop) + 72);
   const [, setImageDimensionTick] = useState(0);
   const [settledChapterImageKeys, setSettledChapterImageKeys] = useState<Set<string>>(new Set());
@@ -4350,24 +4352,32 @@ const Reader: React.FC<ReaderProps> = ({
         </div>
       )}
 
-      <div className="hallmark-reader-toolbar flex items-center gap-3 p-4 z-10">
-        <button onClick={handleBackClick} className="w-10 h-10 neu-btn rounded-full text-slate-500 hover:text-slate-700 shrink-0">
+      <div className="hallmark-reader-toolbar flex items-center gap-2 sm:gap-3 p-3 sm:p-4 z-10">
+        <button onClick={handleBackClick} className="w-9 h-9 sm:w-10 sm:h-10 neu-btn rounded-full text-slate-500 hover:text-slate-700 shrink-0">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0 max-w-[calc(100%-14rem)]">
           <div className="hallmark-reader-title text-sm font-medium opacity-70 truncate">{activeBook?.title || '\u9605\u8bfb\u4e2d'}</div>
         </div>
-        <div className="flex gap-3 shrink-0">
+        <div className="flex gap-1.5 sm:gap-3 shrink-0">
+          <button
+            onClick={() => setReaderMessagePanelOpenRequest((value) => value + 1)}
+            className="w-9 h-9 sm:w-10 sm:h-10 neu-btn rounded-full text-slate-500 hover:text-rose-400"
+            title="阅读角色"
+            aria-label="open-reader-character-panel"
+          >
+            <MessagesSquare size={18} />
+          </button>
           <button
             onClick={toggleTocPanel}
-            className="w-10 h-10 neu-btn rounded-full text-slate-500 hover:text-rose-400"
+            className="w-9 h-9 sm:w-10 sm:h-10 neu-btn rounded-full text-slate-500 hover:text-rose-400"
             title="\u76ee\u5f55"
           >
             <ListIcon size={18} />
           </button>
           <button
             onClick={handleBookmarkButtonClick}
-            className={`w-10 h-10 neu-btn reader-tool-toggle rounded-full ${isBookmarkModalOpen ? 'reader-tool-active' : ''}`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 neu-btn reader-tool-toggle rounded-full ${isBookmarkModalOpen ? 'reader-tool-active' : ''}`}
             style={typographyToggleStyle}
             title={'\u6dfb\u52a0\u4e66\u7b7e'}
           >
@@ -4375,7 +4385,7 @@ const Reader: React.FC<ReaderProps> = ({
           </button>
           <button
             onClick={handleHighlighterButtonClick}
-            className={`w-10 h-10 neu-btn reader-tool-toggle rounded-full ${isHighlighterVisualActive ? 'reader-tool-active' : ''}`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 neu-btn reader-tool-toggle rounded-full ${isHighlighterVisualActive ? 'reader-tool-active' : ''}`}
             style={highlighterToggleStyle}
             title={'\u8367\u5149\u7b14'}
           >
@@ -4383,7 +4393,7 @@ const Reader: React.FC<ReaderProps> = ({
           </button>
           <button
             onClick={toggleTypographyPanel}
-            className={`w-10 h-10 neu-btn reader-tool-toggle rounded-full ${isTypographyPanelOpen ? 'reader-tool-active' : ''}`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 neu-btn reader-tool-toggle rounded-full ${isTypographyPanelOpen ? 'reader-tool-active' : ''}`}
             style={typographyToggleStyle}
             title={'\u6587\u5b57\u6837\u5f0f'}
           >
@@ -4391,7 +4401,7 @@ const Reader: React.FC<ReaderProps> = ({
           </button>
           <button
             onClick={() => setIsMoreSettingsOpen(true)}
-            className={`w-10 h-10 neu-btn reader-tool-toggle rounded-full ${isMoreSettingsOpen ? 'reader-tool-active' : ''}`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 neu-btn reader-tool-toggle rounded-full ${isMoreSettingsOpen ? 'reader-tool-active' : ''}`}
             style={typographyToggleStyle}
             title="更多设置"
           >
@@ -5267,6 +5277,7 @@ const Reader: React.FC<ReaderProps> = ({
       </div>
 
       <ReaderMessagePanel
+        openRequestToken={readerMessagePanelOpenRequest}
         isDarkMode={isDarkMode}
         apiConfig={apiConfig}
         apiPresets={apiPresets}

@@ -53,7 +53,6 @@ const COMPLETED_BOOK_IDS_STORAGE_KEY = 'app_completed_book_ids';
 const COMPLETED_BOOK_REACHED_AT_STORAGE_KEY = 'app_completed_book_reached_at';
 const READING_MS_BY_BOOK_ID_STORAGE_KEY = 'app_reading_ms_by_book_id';
 const PROACTIVE_DELAY_TOLERANCE_MS = 3000;
-const KEEP_ALIVE_SILENT_AUDIO_URL = 'https://files.catbox.moe/qx14i5.mp3';
 const FIXED_MESSAGE_TIME_GAP_MINUTES = 60;
 const RAG_WARMUP_RETRY_BASE_MS = 1500;
 const RAG_WARMUP_RETRY_MAX_MS = 15000;
@@ -632,8 +631,6 @@ const App: React.FC = () => {
   const readingMsByBookIdRef = useRef<Record<string, number>>(readingMsByBookId);
   const proactiveTimerRef = useRef<number | null>(null);
   const proactiveNextPlannedAtRef = useRef<number | null>(null);
-  const keepAliveAudioRef = useRef<HTMLAudioElement | null>(null);
-  const keepAliveUnlockCleanupRef = useRef<(() => void) | null>(null);
   const activeCommentsEnabledRef = useRef(false);
   const proactiveLoopTokenRef = useRef(0);
   const ragGlobalWarmupBookIdRef = useRef<string | null>(null);
@@ -1395,80 +1392,6 @@ const App: React.FC = () => {
   }, [appSettings.activeCommentsEnabled]);
 
   useEffect(() => {
-    const clearUnlockListeners = () => {
-      if (!keepAliveUnlockCleanupRef.current) return;
-      keepAliveUnlockCleanupRef.current();
-      keepAliveUnlockCleanupRef.current = null;
-    };
-
-    const ensureAudioReady = () => {
-      let audio = keepAliveAudioRef.current;
-      if (!audio) {
-        audio = new Audio(KEEP_ALIVE_SILENT_AUDIO_URL);
-        keepAliveAudioRef.current = audio;
-      }
-      if (!audio.src || !audio.src.includes(KEEP_ALIVE_SILENT_AUDIO_URL)) {
-        audio.src = KEEP_ALIVE_SILENT_AUDIO_URL;
-      }
-      audio.loop = true;
-      audio.preload = 'auto';
-      audio.playsInline = true;
-      return audio;
-    };
-
-    const tryPlayAudio = () => {
-      const currentAudio = ensureAudioReady();
-      if (!currentAudio) return;
-      const playPromise = currentAudio.play();
-      if (!playPromise || typeof playPromise.catch !== 'function') return;
-      playPromise.catch(() => {
-        if (keepAliveUnlockCleanupRef.current) return;
-        const unlockEvents: Array<keyof WindowEventMap> = ['pointerdown', 'touchstart', 'click', 'keydown'];
-        const onFirstInteraction = () => {
-          const targetAudio = keepAliveAudioRef.current;
-          if (targetAudio) {
-            targetAudio.play().catch(() => undefined);
-          }
-          clearUnlockListeners();
-        };
-        unlockEvents.forEach((eventName) => {
-          window.addEventListener(eventName, onFirstInteraction, { once: true, passive: true, capture: true });
-        });
-        keepAliveUnlockCleanupRef.current = () => {
-          unlockEvents.forEach((eventName) => {
-            window.removeEventListener(eventName, onFirstInteraction, true);
-          });
-        };
-      });
-    };
-
-    const handleVisibilityResume = () => {
-      if (document.visibilityState !== 'visible') return;
-      tryPlayAudio();
-    };
-
-    const handleWindowFocus = () => {
-      tryPlayAudio();
-    };
-
-    tryPlayAudio();
-    document.addEventListener('visibilitychange', handleVisibilityResume);
-    window.addEventListener('focus', handleWindowFocus);
-    window.addEventListener('pageshow', handleWindowFocus);
-
-    return () => {
-      clearUnlockListeners();
-      document.removeEventListener('visibilitychange', handleVisibilityResume);
-      window.removeEventListener('focus', handleWindowFocus);
-      window.removeEventListener('pageshow', handleWindowFocus);
-      const audio = keepAliveAudioRef.current;
-      if (!audio) return;
-      audio.pause();
-      audio.currentTime = 0;
-    };
-  }, []);
-
-  useEffect(() => {
     activeCommentsEnabledRef.current = appSettings.activeCommentsEnabled;
     const loopToken = proactiveLoopTokenRef.current + 1;
     proactiveLoopTokenRef.current = loopToken;
@@ -1648,14 +1571,6 @@ const App: React.FC = () => {
       if (viewTransitionTimerRef.current) window.clearTimeout(viewTransitionTimerRef.current);
       if (viewTransitionUnlockTimerRef.current) window.clearTimeout(viewTransitionUnlockTimerRef.current);
       if (proactiveTimerRef.current) window.clearTimeout(proactiveTimerRef.current);
-      if (keepAliveUnlockCleanupRef.current) {
-        keepAliveUnlockCleanupRef.current();
-        keepAliveUnlockCleanupRef.current = null;
-      }
-      if (keepAliveAudioRef.current) {
-        keepAliveAudioRef.current.pause();
-        keepAliveAudioRef.current.currentTime = 0;
-      }
     };
   }, []);
 
