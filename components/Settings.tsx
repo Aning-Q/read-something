@@ -32,7 +32,9 @@ import {
   analyzeAppStorageUsage,
   createAppArchivePayload,
   formatBytes,
+  parseAppArchiveFile,
   restoreAppArchivePayload,
+  serializeAppArchive,
 } from '../utils/appArchive';
 
 interface SettingsProps {
@@ -304,14 +306,14 @@ const Settings: React.FC<SettingsProps> = ({
         setTimeout(() => reject(new Error('导出超时，数据量可能过大')), EXPORT_TIMEOUT)
       );
       const payload = await Promise.race([payloadPromise, timeoutPromise]);
-      const json = JSON.stringify(payload);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+      const serialized = await serializeAppArchive(payload);
+      const blob = serialized.blob;
       const date = new Date();
       const pad = (value: number) => `${value}`.padStart(2, '0');
-      const fileName = `读点书-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.json`;
+      const fileName = `读点书-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}${serialized.extension}`;
 
       if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [new File([], '')] })) {
-        const file = new File([blob], fileName, { type: blob.type });
+        const file = new File([blob], fileName, { type: serialized.mimeType });
         try {
           await navigator.share({ files: [file] });
           return;
@@ -351,8 +353,7 @@ const Settings: React.FC<SettingsProps> = ({
 
     setArchiveImporting(true);
     try {
-      const rawText = await file.text();
-      const parsed = JSON.parse(rawText);
+      const parsed = await parseAppArchiveFile(file);
       await restoreAppArchivePayload(parsed);
       alert('导入成功，应用即将刷新。');
       window.location.reload();
@@ -1025,7 +1026,7 @@ const Settings: React.FC<SettingsProps> = ({
         <input
           ref={archiveFileInputRef}
           type="file"
-          accept="application/json,.json"
+          accept="application/json,application/gzip,.json,.json.gz,.gz"
           className="hidden"
           onChange={(e) => { void handleImportArchiveFileSelected(e); }}
         />

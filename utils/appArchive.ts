@@ -36,7 +36,7 @@ export type StorageCategoryKey =
 
 const LOCAL_STORAGE_PREFIXES = ['app_', 'lib_'];
 const APP_ARCHIVE_SCHEMA = 'ai-reader-archive';
-const APP_ARCHIVE_VERSION = 3;
+const APP_ARCHIVE_VERSION = 4;
 const APP_ARCHIVE_APP_ID = 'ai-reader-companion';
 const LEGACY_CHAT_HISTORY_STORAGE_KEY = 'app_reader_chat_history_v1';
 
@@ -302,15 +302,10 @@ export const createAppArchivePayload = async (): Promise<AppArchivePayload> => {
   const bookContents = await getAllBookContents();
   const images = await exportAllImagesAsDataUrls();
   const chatStore = await exportChatHistoryForArchive();
-  const ragModule = await import('./ragEngine');
-  const exportRagIndex = (ragModule as {
-    exportRagIndexForArchive?: () => Promise<{ embeddings?: unknown[]; meta?: unknown[] }>;
-  }).exportRagIndexForArchive;
-  const ragRaw = typeof exportRagIndex === 'function' ? await exportRagIndex() : null;
-  const ragIndex = {
-    embeddings: Array.isArray(ragRaw?.embeddings) ? ragRaw.embeddings : [],
-    meta: Array.isArray(ragRaw?.meta) ? ragRaw.meta : [],
-  };
+  // RAG vectors are a reproducible cache. Keeping them in a portable archive duplicates
+  // both the book text and thousands of floating-point values, often making the backup
+  // several times larger. Older archives containing vectors remain import-compatible.
+  const ragIndex = { embeddings: [], meta: [] };
   const studyHubRaw = await exportStudyHubForArchive();
   const studyHub = {
     notebooks: Array.isArray(studyHubRaw?.notebooks) ? studyHubRaw.notebooks : [],
@@ -341,6 +336,40 @@ export const createAppArchivePayload = async (): Promise<AppArchivePayload> => {
       ttsAudio,
     },
   };
+};
+
+export interface SerializedAppArchive {
+  blob: Blob;
+  extension: '.json' | '.json.gz';
+  mimeType: string;
+}
+
+/** Serialize as gzip where the browser supports streams, with a plain-JSON fallback. */
+export const serializeAppArchive = async (payload: AppArchivePayload): Promise<SerializedAppArchive> => {
+  const jsonBlob = new Blob([JSON.stringify(payload)], { type: 'application/json;charset=utf-8' });
+  if (typeof CompressionStream === 'undefined') {
+    return { blob: jsonBlob, extension: '.json', mimeType: jsonBlob.type };
+  }
+
+  try {
+    const stream = jsonBlob.stream().pipeThrough(new CompressionStream('gzip'));
+    const blob = await new Response(stream).blob();
+    return { blob, extension: '.json.gz', mimeType: 'application/gzip' };
+  } catch {
+    return { blob: jsonBlob, extension: '.json', mimeType: jsonBlob.type };
+  }
+};
+
+/** Read both legacy JSON exports and the new gzip-compressed archives. */
+export const parseAppArchiveFile = async (file: File): Promise<unknown> => {
+  const header = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+  const isGzip = header[0] === 0x1f && header[1] === 0x8b;
+  if (!isGzip) return JSON.parse(await file.text());
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('当前浏览器无法解压 .json.gz 存档，请使用新版浏览器或先在系统中解压');
+  }
+  const stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
 };
 
 const normalizeArchivePayload = (raw: unknown): AppArchivePayload => {
@@ -514,5 +543,4 @@ export const formatBytes = (bytes: number) => {
   const fixed = unitIndex === 0 ? 0 : value >= 100 ? 0 : value >= 10 ? 1 : 2;
   return `${value.toFixed(fixed)} ${units[unitIndex]}`;
 };
-
 

@@ -1909,13 +1909,19 @@ const App: React.FC = () => {
             return;
           }
 
-          const needsIndexWork = await shouldBuildBookIndex(book.id, chapters, fullIndexTargetOffset);
+          const ragApiCfg = resolveRagApiConfig(book.ragModelPresetId);
+          const needsIndexWork = await shouldBuildBookIndex(
+            book.id,
+            chapters,
+            fullIndexTargetOffset,
+            book.ragModelPresetId,
+            ragApiCfg,
+          );
           if (!needsIndexWork) {
             releaseWarmupLock();
             return;
           }
 
-          const ragApiCfg = resolveRagApiConfig(book.ragModelPresetId);
           const usesLocalEmbedModel = !ragApiCfg;
 
           // 使用 API embedding 时跳过本地模型预热
@@ -2023,7 +2029,14 @@ const App: React.FC = () => {
           const fullIndexTargetOffset = estimateRagSafeOffset(chapters, null, Number.MAX_SAFE_INTEGER);
           if (fullIndexTargetOffset <= 0) continue;
 
-          const needsIndexWork = await shouldBuildBookIndex(book.id, chapters, fullIndexTargetOffset);
+          const ragApiCfg = resolveRagApiConfig(book.ragModelPresetId);
+          const needsIndexWork = await shouldBuildBookIndex(
+            book.id,
+            chapters,
+            fullIndexTargetOffset,
+            book.ragModelPresetId,
+            ragApiCfg,
+          );
           if (!needsIndexWork) continue;
 
           warmupRagForBook(book, 'resume');

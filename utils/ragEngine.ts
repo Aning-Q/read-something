@@ -19,7 +19,7 @@ interface StoredEmbedding {
   startOffset: number;
   endOffset: number;
   text: string;
-  embedding: number[];
+  embedding: number[] | Float32Array;
 }
 
 interface RagBookMeta {
@@ -29,6 +29,7 @@ interface RagBookMeta {
   updatedAt: number;
   contentSignature?: string;
   ragModelPresetId?: string;
+  embeddingModelSignature?: string;
 }
 
 interface RetrieveRelevantChunksOptions {
@@ -85,6 +86,8 @@ export interface RagArchiveMeta {
   indexedUpTo: number;
   updatedAt: number;
   contentSignature?: string;
+  ragModelPresetId?: string;
+  embeddingModelSignature?: string;
 }
 
 export interface RagArchivePayload {
@@ -93,9 +96,12 @@ export interface RagArchivePayload {
 }
 
 export class RagEmbeddingApiError extends Error {
-  constructor(message: string) {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = 'RagEmbeddingApiError';
+    this.status = status;
   }
 }
 
@@ -114,6 +120,9 @@ const CHUNK_MIN_LENGTH_GUARD = Math.max(MIN_CHUNK_TEXT_LENGTH, Math.floor(CHUNK_
 const TOP_K = 5;
 const DEFAULT_PER_BOOK_TOP_K = 2;
 const KEYWORD_BOOST_WEIGHT = 0.08;
+const API_EMBEDDING_BATCH_SIZE = 32;
+const API_EMBEDDING_TIMEOUT_MS = 45_000;
+const API_EMBEDDING_MAX_ATTEMPTS = 3;
 const MODEL_NAME = 'Xenova/multilingual-e5-small';
 const HF_REMOTE_HOST = 'https://huggingface.co/';
 const HF_REMOTE_PATH_TEMPLATE = '{model}/resolve/{revision}/';
@@ -132,6 +141,17 @@ const RAG_DB_NAME = 'app_rag_embeddings_v1';
 const RAG_DB_VERSION = 1;
 const EMBEDDINGS_STORE = 'embeddings';
 const META_STORE = 'meta';
+
+const createEmbeddingModelSignature = (presetId?: string, apiConfig?: ApiConfig): string => {
+  if (!apiConfig) return `local:${MODEL_NAME}`;
+  return [
+    'api',
+    presetId || '',
+    apiConfig.provider || '',
+    (apiConfig.endpoint || '').trim().replace(/\/+$/, ''),
+    (apiConfig.model || '').trim(),
+  ].join(':');
+};
 
 const ragModelDebugListeners = new Set<RagModelDebugListener>();
 const ragModelDebugEvents: RagModelDebugEvent[] = [];
@@ -392,9 +412,12 @@ const normalizeArchiveEmbedding = (value: unknown): StoredEmbedding | null => {
   if (!Number.isFinite(chapterIndex) || chapterIndex < 0) return null;
   if (!Number.isFinite(startOffset) || startOffset < 0) return null;
   if (!Number.isFinite(endOffset) || endOffset < startOffset) return null;
-  if (!Array.isArray(value.embedding)) return null;
+  const rawEmbedding = Array.isArray(value.embedding) || value.embedding instanceof Float32Array
+    ? value.embedding
+    : null;
+  if (!rawEmbedding) return null;
 
-  const embedding = value.embedding.map((item) => Number(item));
+  const embedding = Float32Array.from(rawEmbedding, (item) => Number(item));
   if (embedding.length === 0 || embedding.some((item) => !Number.isFinite(item))) return null;
 
   return {
@@ -429,6 +452,9 @@ const normalizeArchiveMeta = (value: unknown): RagBookMeta | null => {
       : undefined,
     ragModelPresetId: typeof value.ragModelPresetId === 'string' && value.ragModelPresetId.trim()
       ? value.ragModelPresetId
+      : undefined,
+    embeddingModelSignature: typeof value.embeddingModelSignature === 'string' && value.embeddingModelSignature.trim()
+      ? value.embeddingModelSignature
       : undefined,
   };
 };
@@ -474,7 +500,7 @@ export const exportRagIndexForArchive = async (): Promise<RagArchivePayload> => 
       startOffset: entry.startOffset,
       endOffset: entry.endOffset,
       text: entry.text,
-      embedding: [...entry.embedding],
+      embedding: Array.from(entry.embedding),
     }));
 
   const meta = rawMeta
@@ -487,6 +513,7 @@ export const exportRagIndexForArchive = async (): Promise<RagArchivePayload> => 
       updatedAt: entry.updatedAt,
       ...(entry.contentSignature ? { contentSignature: entry.contentSignature } : {}),
       ...(entry.ragModelPresetId ? { ragModelPresetId: entry.ragModelPresetId } : {}),
+      ...(entry.embeddingModelSignature ? { embeddingModelSignature: entry.embeddingModelSignature } : {}),
     }));
 
   return { embeddings, meta };
@@ -524,7 +551,14 @@ const getStoreUsageBytes = async (storeName: string): Promise<number> => {
         return;
       }
       try {
-        total += encoder.encode(JSON.stringify(cursor.value)).length;
+        const value = cursor.value;
+        const embedding = isRecord(value) ? value.embedding : null;
+        if (embedding instanceof Float32Array) {
+          const { embedding: _embedding, ...metadata } = value;
+          total += encoder.encode(JSON.stringify(metadata)).length + embedding.byteLength;
+        } else {
+          total += encoder.encode(JSON.stringify(value)).length;
+        }
       } catch {
         // Skip malformed records and keep scanning.
       }
@@ -1310,7 +1344,28 @@ const embedTextsViaApi = async (texts: string[], apiConfig: ApiConfig): Promise<
     body = JSON.stringify({ model, input: texts });
   }
 
-  const response = await fetch(url, { method: 'POST', headers, body });
+  let response: Response | null = null;
+  let lastNetworkError: unknown = null;
+  for (let attempt = 1; attempt <= API_EMBEDDING_MAX_ATTEMPTS; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_EMBEDDING_TIMEOUT_MS);
+    try {
+      response = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
+      if (response.ok || (response.status !== 408 && response.status !== 429 && response.status < 500)) break;
+    } catch (error) {
+      lastNetworkError = error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (attempt < API_EMBEDDING_MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** (attempt - 1)));
+    }
+  }
+
+  if (!response) {
+    const detail = lastNetworkError instanceof Error ? lastNetworkError.message : String(lastNetworkError || '网络错误');
+    throw new RagEmbeddingApiError(`Embedding API 请求失败或超时: ${detail}`);
+  }
 
   if (!response.ok) {
     let detail = '';
@@ -1320,7 +1375,8 @@ const embedTextsViaApi = async (texts: string[], apiConfig: ApiConfig): Promise<
       detail = parsed?.error?.message || parsed?.message || parsed?.detail || raw.slice(0, 200);
     } catch { detail = `HTTP ${response.status}`; }
     throw new RagEmbeddingApiError(
-      `Embedding API 调用失败 (${response.status}): ${detail}`
+      `Embedding API 调用失败 (${response.status}): ${detail}。请确认“${model}”是 embedding 模型而非对话/生成模型。`,
+      response.status,
     );
   }
 
@@ -1333,7 +1389,11 @@ const embedTextsViaApi = async (texts: string[], apiConfig: ApiConfig): Promise<
     }
     return embeddings.map((e: any) => {
       if (!Array.isArray(e?.values)) throw new RagEmbeddingApiError('Gemini embedding values 缺失');
-      return e.values as number[];
+      const vector = e.values.map(Number);
+      if (vector.length === 0 || vector.some((value: number) => !Number.isFinite(value))) {
+        throw new RagEmbeddingApiError('Gemini embedding 向量包含无效数值');
+      }
+      return vector;
     });
   }
 
@@ -1345,12 +1405,21 @@ const embedTextsViaApi = async (texts: string[], apiConfig: ApiConfig): Promise<
     );
   }
   const sorted = [...items].sort((a: any, b: any) => (a.index ?? 0) - (b.index ?? 0));
-  return sorted.map((item: any) => {
+  const vectors = sorted.map((item: any) => {
     if (!Array.isArray(item.embedding)) {
       throw new RagEmbeddingApiError('Embedding 响应缺少 embedding 数组');
     }
-    return item.embedding as number[];
+    const vector = item.embedding.map(Number);
+    if (vector.length === 0 || vector.some((value: number) => !Number.isFinite(value))) {
+      throw new RagEmbeddingApiError('Embedding 响应包含空向量或无效数值');
+    }
+    return vector;
   });
+  const dimensions = vectors[0]?.length || 0;
+  if (vectors.some((vector) => vector.length !== dimensions)) {
+    throw new RagEmbeddingApiError('Embedding 响应中的向量维度不一致');
+  }
+  return vectors;
 };
 
 const embedQueryViaApi = async (query: string, apiConfig: ApiConfig): Promise<number[]> => {
@@ -1360,7 +1429,8 @@ const embedQueryViaApi = async (query: string, apiConfig: ApiConfig): Promise<nu
 
 // ─── 向量相似度 ───
 
-const cosineSimilarity = (a: number[], b: number[]): number => {
+const cosineSimilarity = (a: ArrayLike<number>, b: ArrayLike<number>): number => {
+  if (a.length === 0 || a.length !== b.length) return -1;
   let dot = 0;
   for (let i = 0; i < a.length; i++) dot += a[i] * b[i];
   return dot; // 已归一化，点积即余弦相似度
@@ -1429,6 +1499,8 @@ export const shouldBuildBookIndex = async (
   bookId: string,
   chapters: Chapter[],
   maxGlobalOffset: number,
+  ragModelPresetId?: string,
+  ragApiConfig?: ApiConfig,
 ): Promise<boolean> => {
   const requestedTargetOffset = clampOffset(maxGlobalOffset, 0);
   if (!bookId || !Array.isArray(chapters) || chapters.length === 0 || requestedTargetOffset <= 0) return false;
@@ -1443,6 +1515,8 @@ export const shouldBuildBookIndex = async (
     if (!meta) return true;
     if ((meta.chunkCount || 0) <= 0) return true;
     if (meta.contentSignature !== contentSignature) return true;
+    if (meta.ragModelPresetId !== ragModelPresetId) return true;
+    if (meta.embeddingModelSignature !== createEmbeddingModelSignature(ragModelPresetId, ragApiConfig)) return true;
     return targetOffset > clampOffset(meta.indexedUpTo || 0, 0);
   } catch {
     // If metadata cannot be read reliably, prefer rebuilding instead of skipping.
@@ -1466,13 +1540,16 @@ export const indexBookForRag = async (
   if (targetOffset <= 0) return;
 
   const contentSignature = createChaptersSignature(chapters);
+  const embeddingModelSignature = createEmbeddingModelSignature(ragModelPresetId, ragApiConfig);
   let meta = await getBookMeta(bookId);
 
   // 书籍内容发生变化时，重建该书索引，避免旧向量污染检索结果。
   const shouldRebuild =
     !meta ||
     (meta.chunkCount || 0) <= 0 ||
-    meta.contentSignature !== contentSignature;
+    meta.contentSignature !== contentSignature ||
+    meta.ragModelPresetId !== ragModelPresetId ||
+    meta.embeddingModelSignature !== embeddingModelSignature;
   if (shouldRebuild) {
     await deleteEmbeddingsByBook(bookId);
     meta = {
@@ -1481,33 +1558,53 @@ export const indexBookForRag = async (
       indexedUpTo: 0,
       updatedAt: Date.now(),
       contentSignature,
+      ragModelPresetId,
+      embeddingModelSignature,
     };
   }
 
   const indexedUpTo = clampOffset(meta.indexedUpTo || 0, 0);
   if (targetOffset <= indexedUpTo) return;
 
-  // 本地模型每批 8 个（避免阻塞 UI），API 每批最多 2048 个（减少请求次数）
-  const batchSize = ragApiConfig ? 2048 : 8;
+  // API 批次保持保守，兼容常见服务商的单次 input/token 限制。
+  const batchSize = ragApiConfig ? API_EMBEDDING_BATCH_SIZE : 8;
   const pendingChunks: TextChunk[] = [];
   let latestOffset = indexedUpTo;
+  let persistedCount = Math.max(0, meta.chunkCount || 0);
   const totalDelta = Math.max(1, targetOffset - indexedUpTo);
 
   const flushChunkBatch = async () => {
     if (pendingChunks.length === 0) return;
 
-    const vectors = await embedTexts(pendingChunks.map((c) => c.text), ragApiConfig);
-    const embeddings: StoredEmbedding[] = pendingChunks.map((chunk, idx) => ({
+    const chunksToFlush = pendingChunks.splice(0, pendingChunks.length);
+    const vectors = await embedTexts(chunksToFlush.map((c) => c.text), ragApiConfig);
+    if (vectors.length !== chunksToFlush.length) {
+      throw new RagEmbeddingApiError(`Embedding 数量不匹配：请求 ${chunksToFlush.length}，返回 ${vectors.length}`);
+    }
+    const embeddings: StoredEmbedding[] = chunksToFlush.map((chunk, idx) => ({
       chunkId: chunk.id,
       bookId: chunk.bookId,
       chapterIndex: chunk.chapterIndex,
       startOffset: chunk.startOffset,
       endOffset: chunk.endOffset,
       text: chunk.text,
-      embedding: vectors[idx],
+      embedding: Float32Array.from(vectors[idx]),
     }));
     await storeEmbeddings(embeddings);
-    pendingChunks.length = 0;
+    persistedCount += embeddings.length;
+    const checkpointOffset = embeddings.reduce(
+      (maxOffset, embedding) => Math.max(maxOffset, embedding.endOffset),
+      indexedUpTo,
+    );
+    await saveBookMeta({
+      bookId,
+      chunkCount: persistedCount,
+      indexedUpTo: checkpointOffset,
+      updatedAt: Date.now(),
+      contentSignature,
+      ragModelPresetId,
+      embeddingModelSignature,
+    });
     await yieldToMainThread();
   };
 
@@ -1541,7 +1638,6 @@ export const indexBookForRag = async (
   await flushChunkBatch();
   onProgress?.(1);
 
-  const persistedCount = (await getEmbeddingsByBook(bookId)).length;
   await saveBookMeta({
     bookId,
     chunkCount: persistedCount,
@@ -1549,6 +1645,7 @@ export const indexBookForRag = async (
     updatedAt: Date.now(),
     contentSignature,
     ragModelPresetId,
+    embeddingModelSignature,
   });
 };
 
