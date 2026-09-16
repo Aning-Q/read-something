@@ -3242,7 +3242,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   ...(paperStyle.shadow && { boxShadow: paperStyle.shadow }),
                 }}
               >
-                <p className={`text-sm line-clamp-2 ${headingClass}`} style={{ fontFamily: '"Noto Serif SC", "Source Han Serif CN", serif' }}>{stripMarkdownForPreview(note.content) || '空白笔记'}</p>
+                <p className="hallmark-note-preview text-sm line-clamp-2">{stripMarkdownForPreview(note.content) || '空白笔记'}</p>
                 <div className="flex items-center justify-between mt-2">
 	                  <span className={`text-[10px] ${subTextClass}`}>
 	                    {new Date(note.updatedAt).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -3375,8 +3375,8 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   backgroundPosition: '0 0',
                   ...(paperStyle.size ? { backgroundSize: paperStyle.size } : {}),
                 }),
-                color: isDarkMode ? '#e2e8f0' : '#334155',
-                fontFamily: '"Noto Serif SC", "Source Han Serif CN", serif',
+                color: 'var(--color-ink)',
+                fontFamily: 'var(--font-body)',
               }}
             ></div>
             {!noteContent.trim() && !isNoteEditorFocused && (
@@ -4030,7 +4030,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
                   })}
 
                   {q.explanation && (
-                    <p className={`text-[11px] mt-2 ${isDarkMode ? 'text-amber-200/60' : 'text-amber-700/60'}`} style={{ fontStyle: 'italic' }}>
+                    <p className="hallmark-quiz-explanation text-[11px] mt-2">
                       {q.explanation}
                     </p>
                   )}
@@ -4065,10 +4065,7 @@ const StudyHub: React.FC<StudyHubProps> = ({
             </button>
           </div>
           {activeQuizSession.overallComment ? (
-            <p
-              className={`text-sm ${isDarkMode ? 'text-amber-200/80' : 'text-amber-800/80'}`}
-              style={{ fontFamily: '"Noto Serif SC", serif', fontStyle: 'italic', lineHeight: '1.8' }}
-            >
+            <p className="hallmark-quiz-comment text-sm">
               {activeQuizSession.overallComment}
             </p>
           ) : (

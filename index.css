@@ -640,7 +640,7 @@
         padding-top: 0.9rem;
         color: #444444;
         white-space: pre-wrap;
-        font-family: "PING FANG SHAO HUA", "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-family: var(--font-body);
       }
 
       .stats-note-date {
@@ -667,7 +667,7 @@
         width: 100%;
         height: 100%;
         color: #555555;
-        font-family: "PING FANG SHAO HUA", "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-family: var(--font-body);
       }
 
       .stats-note-loading-text {
@@ -1014,6 +1014,42 @@ body {
   color: var(--color-ink);
 }
 
+.hallmark-reader-title {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.hallmark-note-preview,
+.hallmark-quiz-comment {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-style: normal;
+  line-height: 1.7;
+}
+
+.hallmark-quiz-explanation {
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-style: normal;
+  line-height: 1.6;
+}
+
+.hallmark-app .stats-note-content,
+.hallmark-app .stats-note-body,
+.hallmark-app .stats-note-loading {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.hallmark-app .stats-note-date {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: normal;
+}
+
 .hallmark-tabbar {
   min-height: 4.5rem;
   padding: var(--space-2xs);
@@ -1047,6 +1083,7 @@ body {
   background-color: var(--color-accent-soft);
   border-color: var(--color-rule);
   color: var(--color-accent-strong);
+  animation: hallmark-tab-settle var(--dur-short) var(--ease-out) both;
 }
 
 .hallmark-tab-label {
@@ -1085,9 +1122,51 @@ body {
   border-color: var(--color-success) !important;
 }
 
+.hallmark-reader .reader-tool-toggle.reader-tool-active {
+  background-color: var(--color-accent-soft) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent-strong) !important;
+}
+
+.hallmark-app .app-card-press,
+.hallmark-app .lib-cover-card-press {
+  transition: transform var(--dur-short) var(--ease-out);
+}
+
+.hallmark-app .app-card-press:active,
+.hallmark-app .lib-cover-card-press:active {
+  box-shadow: none !important;
+  transform: translateY(1px) !important;
+}
+
+@keyframes hallmark-tab-settle {
+  from {
+    opacity: 0.72;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hallmark-opacity-in {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .hallmark-card:hover {
     transform: translateY(-2px);
+  }
+
+  .hallmark-app .app-card-press:hover,
+  .hallmark-app .lib-cover-card-press:hover {
+    transform: translateY(-2px);
+  }
+
+  .hallmark-input:hover {
+    background-color: var(--color-paper-2) !important;
   }
 
   .hallmark-button:hover,
@@ -1120,5 +1199,9 @@ body {
     animation-duration: 150ms !important;
     transition-duration: 150ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .hallmark-tab-button--active {
+    animation-name: hallmark-opacity-in;
   }
 }

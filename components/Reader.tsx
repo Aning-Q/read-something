@@ -4355,7 +4355,7 @@ const Reader: React.FC<ReaderProps> = ({
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0 max-w-[calc(100%-14rem)]">
-          <div className="text-sm font-serif font-medium opacity-70 truncate">{activeBook?.title || '\u9605\u8bfb\u4e2d'}</div>
+          <div className="hallmark-reader-title text-sm font-medium opacity-70 truncate">{activeBook?.title || '\u9605\u8bfb\u4e2d'}</div>
         </div>
         <div className="flex gap-3 shrink-0">
           <button

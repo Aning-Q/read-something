@@ -864,32 +864,14 @@ const Stats: React.FC<StatsProps> = ({
     const TAPE_ROT_RAD = (2 * Math.PI) / 180;
 
     const DATE_FONT_PX = 24;
-    const DATE_FONT = `700 ${DATE_FONT_PX}px "PING FANG SHAO HUA", "PingFang SC", "Microsoft YaHei", sans-serif`;
+    const DATE_FONT = `700 ${DATE_FONT_PX}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif`;
     const DATE_LINE_H = Math.round(DATE_FONT_PX * 1.2); // 29
     const DATE_BORDER_GAP = 8;
     const DATE_MARGIN = 14;
 
     const BODY_FONT_PX = 20;
-    const BODY_FONT = `400 ${BODY_FONT_PX}px "PING FANG SHAO HUA", "PingFang SC", "Microsoft YaHei", sans-serif`;
+    const BODY_FONT = `400 ${BODY_FONT_PX}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif`;
     const BODY_LINE_H = BODY_FONT_PX * 1.62; // 32.4
-
-    // The "PING FANG SHAO HUA" font is heavily subsetted (~30 woff2 chunks split by unicode-range).
-    // The browser only fetches the chunks it currently needs to render on-screen text; Canvas
-    // drawing doesn't trigger that fetch, so glyphs not yet downloaded will silently fall back to
-    // the next font in the stack. document.fonts.load(font, text) forces the matching subsets to
-    // download for the exact characters we're about to draw.
-    if (document.fonts?.load) {
-      try {
-        await Promise.all([
-          // The @font-face has no weight specified (defaults to 400). Bold for the date is
-          // synthesized by the renderer from the 400 face, so we only need to load 400.
-          document.fonts.load(`${DATE_FONT_PX}px "PING FANG SHAO HUA"`, stickyNoteDateText),
-          document.fonts.load(`${BODY_FONT_PX}px "PING FANG SHAO HUA"`, stickyNoteContent),
-        ]);
-      } catch {
-        // Subset fetch failure shouldn't block export — we just fall back to the next font.
-      }
-    }
 
     // Char-by-char wrapping — handles CJK natively and breaks Latin words at the boundary.
     const measureCtx = document.createElement('canvas').getContext('2d');
@@ -1665,4 +1647,3 @@ const Stats: React.FC<StatsProps> = ({
 };
 
 export default Stats;
-
