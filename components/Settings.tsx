@@ -24,7 +24,7 @@ import WorldBookSettings from './settings/WorldBookSettings';
 import AppearanceSettings from './settings/AppearanceSettings';
 import ApiSettings from './settings/ApiSettings';
 import TtsSettings from './settings/TtsSettings';
-import GistSyncSettings from './settings/GistSyncSettings';
+import SyncSettings from './settings/SyncSettings';
 import ModalPortal from './ModalPortal';
 import { deleteImageByRef, saveImageFile } from '../utils/imageStorage';
 import {
@@ -687,7 +687,7 @@ const Settings: React.FC<SettingsProps> = ({
       <div key="GIST_SYNC" className={`flex-1 flex flex-col p-6 pb-28 overflow-y-auto no-scrollbar relative ${containerClass} ${animationClass}`}>
         {renderHeader("跨设备同步", () => goBack())}
         <div className={`${cardClass} p-5 rounded-2xl`}>
-          <GistSyncSettings
+          <SyncSettings
             isDarkMode={isDarkMode}
             onSyncCompleted={() => {
               window.dispatchEvent(new CustomEvent("app-state-reload-requested"));

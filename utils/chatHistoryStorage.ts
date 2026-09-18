@@ -1,3 +1,5 @@
+import { markSyncDataDirty } from './sync/syncSettings';
+
 const CHAT_HISTORY_DB_NAME = 'app_reader_chat_history_db_v1';
 const CHAT_HISTORY_STORE = 'chat_history_store';
 const CHAT_HISTORY_DB_VERSION = 1;
@@ -65,6 +67,7 @@ export const saveStoredChatHistoryStore = async (payload: StoredChatHistoryStore
     tx.onerror = () => reject(tx.error || new Error('Failed to save chat history store'));
     tx.onabort = () => reject(tx.error || new Error('Failed to save chat history store'));
   });
+  markSyncDataDirty();
 };
 
 export const replaceStoredChatHistoryStore = async (payload: StoredChatHistoryStore): Promise<void> => {
@@ -83,6 +86,7 @@ export const clearStoredChatHistoryStore = async (): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('Failed to clear chat history store'));
     tx.onabort = () => reject(tx.error || new Error('Failed to clear chat history store'));
   });
+  markSyncDataDirty();
 };
 
 const getUtf8Bytes = (value: string) => new TextEncoder().encode(value).length;
@@ -100,4 +104,3 @@ export const exportChatHistoryForArchive = async (): Promise<StoredChatHistorySt
 export const restoreChatHistoryFromArchive = async (payload: unknown): Promise<void> => {
   await replaceStoredChatHistoryStore(normalizeStoredChatStore(payload));
 };
-

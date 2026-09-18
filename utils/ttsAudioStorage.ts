@@ -1,4 +1,5 @@
 import type { TtsConfig } from '../types';
+import { markSyncDataDirty } from './sync/syncSettings';
 
 // ─── IndexedDB Configuration ───
 
@@ -96,6 +97,7 @@ export async function saveTtsAudio(
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error || new Error('保存 TTS 音频失败'));
   });
+  markSyncDataDirty();
 }
 
 export async function getTtsAudio(
@@ -138,6 +140,7 @@ export async function deleteTtsAudio(
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error || new Error('删除 TTS 音频失败'));
   });
+  markSyncDataDirty();
 }
 
 export async function clearBookTtsAudio(bookId: string): Promise<void> {
@@ -159,6 +162,7 @@ export async function clearBookTtsAudio(bookId: string): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error || new Error('清除书籍 TTS 音频失败'));
   });
+  markSyncDataDirty();
 }
 
 export async function clearAllTtsAudio(): Promise<void> {
@@ -171,6 +175,7 @@ export async function clearAllTtsAudio(): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error || new Error('清除所有 TTS 音频失败'));
   });
+  markSyncDataDirty();
 }
 
 // ─── Chapter Cache Query ───
@@ -369,4 +374,5 @@ export async function restoreTtsAudioFromArchive(
       // Skip corrupted entries
     }
   }
+  markSyncDataDirty();
 }

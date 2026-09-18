@@ -1,4 +1,5 @@
 import { Notebook, QuizSession, FavoriteQuote } from '../types';
+import { markSyncDataDirty } from './sync/syncSettings';
 
 const DB_NAME = 'app_study_hub_v1';
 const DB_VERSION = 2;
@@ -62,6 +63,7 @@ export const saveNotebook = async (notebook: Notebook): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('保存笔记本失败'));
     tx.onabort = () => reject(tx.error || new Error('保存笔记本失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getNotebook = async (id: string): Promise<Notebook | null> => {
@@ -100,6 +102,7 @@ export const deleteNotebook = async (id: string): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('删除笔记本失败'));
     tx.onabort = () => reject(tx.error || new Error('删除笔记本失败'));
   });
+  markSyncDataDirty();
 };
 
 // ─── QuizSession CRUD ───
@@ -114,6 +117,7 @@ export const saveQuizSession = async (session: QuizSession): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('保存问答会话失败'));
     tx.onabort = () => reject(tx.error || new Error('保存问答会话失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getQuizSession = async (id: string): Promise<QuizSession | null> => {
@@ -152,6 +156,7 @@ export const deleteQuizSession = async (id: string): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('删除问答会话失败'));
     tx.onabort = () => reject(tx.error || new Error('删除问答会话失败'));
   });
+  markSyncDataDirty();
 };
 
 // ─── FavoriteQuote CRUD ───
@@ -166,6 +171,7 @@ export const saveFavoriteQuote = async (quote: FavoriteQuote): Promise<void> => 
     tx.onerror = () => reject(tx.error || new Error('保存收藏消息失败'));
     tx.onabort = () => reject(tx.error || new Error('保存收藏消息失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getAllFavoriteQuotes = async (): Promise<FavoriteQuote[]> => {
@@ -193,6 +199,7 @@ export const deleteFavoriteQuote = async (id: string): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('删除收藏消息失败'));
     tx.onabort = () => reject(tx.error || new Error('删除收藏消息失败'));
   });
+  markSyncDataDirty();
 };
 
 // ─── Archive ───
@@ -231,6 +238,7 @@ export const restoreStudyHubFromArchive = async (payload: { notebooks?: Notebook
     tx.onerror = () => reject(tx.error || new Error('恢复共读集数据失败'));
     tx.onabort = () => reject(tx.error || new Error('恢复共读集数据失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getStudyHubStorageUsageBytes = async (): Promise<{

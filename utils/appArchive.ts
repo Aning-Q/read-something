@@ -52,6 +52,8 @@ export const STORAGE_CATEGORY_ORDER: StorageCategoryKey[] = [
   'other',
 ];
 
+/** 存档中可被有意省略的数据分区，恢复时需要据此跳过。 */
+
 export const STORAGE_CATEGORY_LABELS: Record<StorageCategoryKey, string> = {
   readingText: '阅读文本信息',
   studyHub: '共读集数据',
@@ -98,6 +100,17 @@ const getUtf8Bytes = (value: string) => new TextEncoder().encode(value).length;
 
 const isArchiveLocalStorageKey = (key: string) => LOCAL_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix));
 
+export interface CreateAppArchiveOptions {
+  /** localStorage 中不纳入存档的键，用于排除同步自身的配置与状态。 */
+  excludeLocalStorageKeys?: string[];
+  /** 是否收集书籍正文，通常是体积占比最大的一项。 */
+  includeBookContents?: boolean;
+  /** 是否收集图片。 */
+  includeImages?: boolean;
+  /** 是否收集 TTS 朗读音频。 */
+  includeTtsAudio?: boolean;
+}
+
 const classifyLocalStorageKey = (key: string): StorageCategoryKey => {
   if (key === 'app_books') return 'readingText';
   if (key === 'app_reader_chat_history_v1') return 'chatHistory';
@@ -134,11 +147,12 @@ const classifyLocalStorageKey = (key: string): StorageCategoryKey => {
   return 'other';
 };
 
-const collectLocalStorageSnapshot = (): Record<string, string> => {
+const collectLocalStorageSnapshot = (excludeKeys?: Set<string>): Record<string, string> => {
   const snapshot: Record<string, string> = {};
   for (let index = 0; index < localStorage.length; index += 1) {
     const key = localStorage.key(index);
     if (!key || !isArchiveLocalStorageKey(key)) continue;
+    if (excludeKeys?.has(key)) continue;
     const value = localStorage.getItem(key);
     if (value === null) continue;
     snapshot[key] = value;
@@ -278,6 +292,11 @@ export interface AppArchivePayload {
     version: number;
     exportedAt: string;
     appId: string;
+    /**
+     * 被有意排除、不做收集的数据分区。
+     * 恢复时必须跳过这些分区，否则「轻量存档」会把本机已有的正文或图片清空。
+     */
+    omittedSections?: StorageSectionKey[];
   };
   localStorage: Record<string, string>;
   indexedDb: {
@@ -297,10 +316,28 @@ export interface AppArchivePayload {
   };
 }
 
-export const createAppArchivePayload = async (): Promise<AppArchivePayload> => {
-  const localStorageSnapshot = collectLocalStorageSnapshot();
-  const bookContents = await getAllBookContents();
-  const images = await exportAllImagesAsDataUrls();
+export type StorageSectionKey = 'bookContents' | 'images' | 'ttsAudio';
+
+export const createAppArchivePayload = async (
+  options: CreateAppArchiveOptions = {}
+): Promise<AppArchivePayload> => {
+  const {
+    excludeLocalStorageKeys,
+    includeBookContents = true,
+    includeImages = true,
+    includeTtsAudio = true,
+  } = options;
+  const localStorageSnapshot = collectLocalStorageSnapshot(
+    excludeLocalStorageKeys && excludeLocalStorageKeys.length > 0
+      ? new Set(excludeLocalStorageKeys)
+      : undefined
+  );
+  const bookContents = includeBookContents ? await getAllBookContents() : {};
+  const images = includeImages ? await exportAllImagesAsDataUrls() : {};
+  const omittedSections: StorageSectionKey[] = [];
+  if (!includeBookContents) omittedSections.push('bookContents');
+  if (!includeImages) omittedSections.push('images');
+  if (!includeTtsAudio) omittedSections.push('ttsAudio');
   const chatStore = await exportChatHistoryForArchive();
   // RAG vectors are a reproducible cache. Keeping them in a portable archive duplicates
   // both the book text and thousands of floating-point values, often making the backup
@@ -313,10 +350,12 @@ export const createAppArchivePayload = async (): Promise<AppArchivePayload> => {
     favoriteQuotes: Array.isArray(studyHubRaw?.favoriteQuotes) ? studyHubRaw.favoriteQuotes : [],
   };
   let ttsAudio: Record<string, { audio: string; meta: Record<string, unknown> }> = {};
-  try {
-    ttsAudio = await exportTtsAudioForArchive() as Record<string, { audio: string; meta: Record<string, unknown> }>;
-  } catch {
-    // ignore TTS audio export failures
+  if (includeTtsAudio) {
+    try {
+      ttsAudio = await exportTtsAudioForArchive() as Record<string, { audio: string; meta: Record<string, unknown> }>;
+    } catch {
+      // ignore TTS audio export failures
+    }
   }
 
   return {
@@ -325,6 +364,7 @@ export const createAppArchivePayload = async (): Promise<AppArchivePayload> => {
       version: APP_ARCHIVE_VERSION,
       exportedAt: new Date().toISOString(),
       appId: APP_ARCHIVE_APP_ID,
+      omittedSections,
     },
     localStorage: localStorageSnapshot,
     indexedDb: {
@@ -381,6 +421,12 @@ const normalizeArchivePayload = (raw: unknown): AppArchivePayload => {
   const version = Number(metaSource.version);
   const exportedAt = typeof metaSource.exportedAt === 'string' ? metaSource.exportedAt : '';
   const appId = typeof metaSource.appId === 'string' ? metaSource.appId : '';
+  const omittedSections = Array.isArray(metaSource.omittedSections)
+    ? metaSource.omittedSections.filter(
+        (item): item is StorageSectionKey =>
+          item === 'bookContents' || item === 'images' || item === 'ttsAudio'
+      )
+    : [];
   if (schema !== APP_ARCHIVE_SCHEMA) throw new Error('存档 schema 不匹配');
   if (!Number.isFinite(version) || version < 1) throw new Error('存档版本无效');
   if (!exportedAt) throw new Error('存档导出时间缺失');
@@ -466,6 +512,7 @@ const normalizeArchivePayload = (raw: unknown): AppArchivePayload => {
       version: Math.floor(version),
       exportedAt,
       appId,
+      omittedSections,
     },
     localStorage: localStorageSnapshot,
     indexedDb: {
@@ -487,40 +534,65 @@ const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
   return response.blob();
 };
 
-export const restoreAppArchivePayload = async (raw: unknown): Promise<AppArchivePayload> => {
+export interface RestoreAppArchiveOptions {
+  /**
+   * 恢复时需要保留、不参与覆盖的 localStorage 键。
+   * 同步流程用它保住本机的同步配置与登录令牌。
+   */
+  preserveLocalStorageKeys?: string[];
+}
+
+export const restoreAppArchivePayload = async (
+  raw: unknown,
+  options: RestoreAppArchiveOptions = {}
+): Promise<AppArchivePayload> => {
   const archive = normalizeArchivePayload(raw);
-  const imageBlobEntries = await Promise.all(
-    Object.entries(archive.indexedDb.images).map(async ([imageRef, dataUrl]) => {
-      const blob = await dataUrlToBlob(dataUrl);
-      return [imageRef, blob] as const;
-    })
-  );
+  const omitted = new Set(archive.meta.omittedSections ?? []);
+  const preserveLocalStorageKeys = new Set(options.preserveLocalStorageKeys ?? []);
+  const imageBlobEntries = omitted.has('images')
+    ? []
+    : await Promise.all(
+        Object.entries(archive.indexedDb.images).map(async ([imageRef, dataUrl]) => {
+          const blob = await dataUrlToBlob(dataUrl);
+          return [imageRef, blob] as const;
+        })
+      );
   const ragModule = await import('./ragEngine');
   const restoreRagIndex = (ragModule as { restoreRagIndexFromArchive?: (value: unknown) => Promise<void> })
     .restoreRagIndexFromArchive;
 
-  await replaceAllBookContents(archive.indexedDb.bookContents);
+  if (!omitted.has('bookContents')) {
+    await replaceAllBookContents(archive.indexedDb.bookContents);
+  }
   await restoreChatHistoryFromArchive(archive.indexedDb.chatStore);
   if (typeof restoreRagIndex === 'function') {
     await restoreRagIndex(archive.indexedDb.ragIndex);
   }
   await restoreStudyHubFromArchive(archive.indexedDb.studyHub);
-  if (archive.indexedDb.ttsAudio && Object.keys(archive.indexedDb.ttsAudio).length > 0) {
+  if (
+    !omitted.has('ttsAudio')
+    && archive.indexedDb.ttsAudio
+    && Object.keys(archive.indexedDb.ttsAudio).length > 0
+  ) {
     try {
       await restoreTtsAudioFromArchive(archive.indexedDb.ttsAudio);
     } catch {
       // ignore TTS audio restore failures
     }
   }
-  await clearAllImages();
-  for (const [imageRef, blob] of imageBlobEntries) {
-    await saveImageBlobByRef(imageRef, blob);
+  if (!omitted.has('images')) {
+    await clearAllImages();
+    for (const [imageRef, blob] of imageBlobEntries) {
+      await saveImageBlobByRef(imageRef, blob);
+    }
   }
 
   const removableKeys: string[] = [];
   for (let index = 0; index < localStorage.length; index += 1) {
     const key = localStorage.key(index);
     if (!key || !isArchiveLocalStorageKey(key)) continue;
+    // 同步配置等本机专属状态不参与覆盖，否则恢复后需要重新登录。
+    if (preserveLocalStorageKeys.has(key)) continue;
     removableKeys.push(key);
   }
   removableKeys.forEach((key) => localStorage.removeItem(key));
@@ -543,4 +615,3 @@ export const formatBytes = (bytes: number) => {
   const fixed = unitIndex === 0 ? 0 : value >= 100 ? 0 : value >= 10 ? 1 : 2;
   return `${value.toFixed(fixed)} ${units[unitIndex]}`;
 };
-

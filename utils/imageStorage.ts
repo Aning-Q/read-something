@@ -1,3 +1,5 @@
+import { markSyncDataDirty } from './sync/syncSettings';
+
 const IMAGE_REF_PREFIX = 'idb://';
 const IMAGE_DB_NAME = 'app_image_store_v1';
 const IMAGE_DB_STORE = 'images';
@@ -52,6 +54,7 @@ export const saveImageBlob = async (blob: Blob): Promise<string> => {
     tx.onabort = () => reject(tx.error || new Error('Failed to save image'));
   });
 
+  markSyncDataDirty();
   return `${IMAGE_REF_PREFIX}${id}`;
 };
 
@@ -75,6 +78,7 @@ export const saveImageBlobByRef = async (imageRef: string, blob: Blob): Promise<
     tx.onerror = () => reject(tx.error || new Error('Failed to save image by ref'));
     tx.onabort = () => reject(tx.error || new Error('Failed to save image by ref'));
   });
+  markSyncDataDirty();
 };
 
 export const getImageBlobByRef = async (imageRef: string): Promise<Blob | null> => {
@@ -109,6 +113,7 @@ export const deleteImageByRef = async (imageRef?: string | null): Promise<void> 
     tx.onerror = () => reject(tx.error || new Error('Failed to delete image'));
     tx.onabort = () => reject(tx.error || new Error('Failed to delete image'));
   });
+  markSyncDataDirty();
 };
 
 const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
@@ -134,6 +139,7 @@ export const clearAllImages = async (): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('Failed to clear image store'));
     tx.onabort = () => reject(tx.error || new Error('Failed to clear image store'));
   });
+  markSyncDataDirty();
 };
 
 const blobToDataUrl = (blob: Blob): Promise<string> =>

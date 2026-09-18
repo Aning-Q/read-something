@@ -13,7 +13,7 @@ import { buildConversationKey, readConversationBucket, persistConversationBucket
 import { BUILT_IN_TUTORIAL_BOOK_ID, BUILT_IN_TUTORIAL_VERSION, createBuiltInTutorialBook, migrateTutorialImages, isBuiltInBook, markTutorialUnread, clearTutorialUnread } from './utils/builtInTutorialBook';
 import { buildCharacterWorldBookSections, buildReadingContextSnapshot, runConversationGeneration } from './utils/readerAiEngine';
 import { DEFAULT_TTS_CONFIG } from './utils/ttsEngine';
-import { getSyncSettings, performSync, scheduleSync } from './utils/gistSync/syncEngine';
+import { getSyncSettings, performSync, scheduleSync } from './utils/sync/syncEngine';
 import {
   DEFAULT_NEUMORPHISM_BUBBLE_CSS_PRESET_ID,
   DEFAULT_NEUMORPHISM_BUBBLE_CSS,
@@ -1087,27 +1087,38 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Gist Sync: Startup Pull
-  const didGistStartupPullRef = useRef(false);
+  // Cloud Sync: Startup Pull
+  const didSyncStartupPullRef = useRef(false);
   useEffect(() => {
-    if (didGistStartupPullRef.current) return;
-    didGistStartupPullRef.current = true;
+    if (didSyncStartupPullRef.current) return;
+    didSyncStartupPullRef.current = true;
     
     const settings = getSyncSettings();
     if (settings?.enabled && settings?.autoSync) {
-      performSync("pull").catch(() => {});
+      // 启动时只做「按需下载」：云端确实更新时才恢复，避免覆盖本机较新的数据。
+      performSync("auto").catch(() => {});
     }
   }, []);
 
-  // Gist Sync: Auto-push on data changes (debounced)
+  // Cloud Sync: Auto-push on data changes (debounced).
+  // 跳过首次渲染，避免应用刚启动、自动拉取尚未完成时就把本机初始状态推到云端。
+  const didMountSyncWatchRef = useRef(false);
   useEffect(() => {
-    const settings = getSyncSettings();
-    if (settings?.enabled && settings?.autoSync) {
-      scheduleSync(3000);
+    if (!didMountSyncWatchRef.current) {
+      didMountSyncWatchRef.current = true;
+      return;
     }
+    scheduleSync(3000);
   }, [books, apiConfig, apiPresets, appSettings, personas, characters, ttsConfig, ttsPresets]);
 
-  // Gist Sync: Reload state after remote sync
+  // IndexedDB（聊天、笔记、阅读位置等）不一定会改变 App 顶层 state，单独监听存储层通知。
+  useEffect(() => {
+    const handler = () => scheduleSync(3000);
+    window.addEventListener('app-sync-data-changed', handler);
+    return () => window.removeEventListener('app-sync-data-changed', handler);
+  }, []);
+
+  // Cloud Sync: Reload state after remote sync
   useEffect(() => {
     const handler = () => {
       // Trigger state re-read from localStorage

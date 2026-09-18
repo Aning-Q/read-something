@@ -1,4 +1,5 @@
 import { Book, Chapter, ReaderBookState, ReaderSummaryCard } from '../types';
+import { markSyncDataDirty } from './sync/syncSettings';
 
 const BOOK_CONTENT_DB_NAME = 'app_book_content_v1';
 const BOOK_CONTENT_STORE = 'book_contents';
@@ -181,6 +182,7 @@ export const saveBookContent = async (bookId: string, fullText: string, chapters
     tx.onerror = () => reject(tx.error || new Error('保存书籍内容失败'));
     tx.onabort = () => reject(tx.error || new Error('保存书籍内容失败'));
   });
+  markSyncDataDirty();
 };
 
 export const saveBookReaderState = async (bookId: string, readerState: ReaderBookState): Promise<void> => {
@@ -208,6 +210,7 @@ export const saveBookReaderState = async (bookId: string, readerState: ReaderBoo
     tx.onerror = () => reject(tx.error || new Error('保存阅读状态失败'));
     tx.onabort = () => reject(tx.error || new Error('保存阅读状态失败'));
   });
+  markSyncDataDirty();
 };
 
 export const saveBookSummaryState = async (
@@ -244,6 +247,7 @@ export const saveBookSummaryState = async (
     tx.onerror = () => reject(tx.error || new Error('保存摘要状态失败'));
     tx.onabort = () => reject(tx.error || new Error('保存摘要状态失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getBookContent = async (bookId: string): Promise<StoredBookContent | null> => {
@@ -274,6 +278,7 @@ export const deleteBookContent = async (bookId: string): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('删除书籍内容失败'));
     tx.onabort = () => reject(tx.error || new Error('删除书籍内容失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getBookTextLength = (book: Partial<Book>): number => {
@@ -386,6 +391,7 @@ export const clearAllBookContents = async (): Promise<void> => {
     tx.onerror = () => reject(tx.error || new Error('清空书籍内容失败'));
     tx.onabort = () => reject(tx.error || new Error('清空书籍内容失败'));
   });
+  markSyncDataDirty();
 };
 
 export const replaceAllBookContents = async (nextEntries: Record<string, StoredBookContent>): Promise<void> => {
@@ -408,6 +414,7 @@ export const replaceAllBookContents = async (nextEntries: Record<string, StoredB
     tx.onerror = () => reject(tx.error || new Error('替换书籍内容失败'));
     tx.onabort = () => reject(tx.error || new Error('替换书籍内容失败'));
   });
+  markSyncDataDirty();
 };
 
 export const getBookContentStorageUsageBytes = async (): Promise<{ totalBytes: number; byBookId: Record<string, number> }> => {
